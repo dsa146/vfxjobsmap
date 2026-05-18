@@ -520,6 +520,7 @@ function switchView(name) {
   if (name === 'list')    renderListView();
   if (name === 'studios') renderStudiosView();
   if (name === 'map')     map.invalidateSize();
+  syncMobileNav(name);
 }
 navLinks.forEach(a => a.addEventListener('click', () => switchView(a.textContent.toLowerCase())));
 
@@ -783,6 +784,7 @@ initData();
 
 // ── Mobile sheet nav ──────────────────────────────────────────────────────
 let closeMobileSheet = () => {};
+let syncMobileNav    = () => {};
 
 (function initMobileNav() {
   const mobileNav = document.getElementById('mobile-nav');
@@ -792,19 +794,34 @@ let closeMobileSheet = () => {};
   const mnavBtns = mobileNav.querySelectorAll('.mnav-item');
   let activeSheet = 'none';
 
+  function setActive(nav) {
+    mnavBtns.forEach(b => b.classList.toggle('on', b.dataset.nav === nav));
+  }
+
   function openSheet(name) {
     const next = (name === activeSheet && name !== 'none') ? 'none' : name;
     activeSheet = next;
     railEl.classList.toggle('sheet-open', next === 'filters');
     feedEl.classList.toggle('sheet-open', next === 'feed');
-    mnavBtns.forEach(b => b.classList.toggle('on',
-      next === 'none' ? b.dataset.sheet === 'none' : b.dataset.sheet === next
-    ));
+    setActive(next === 'none' ? currentView : next);
     if (next !== 'none') map.invalidateSize();
   }
 
   closeMobileSheet = () => openSheet('none');
-  mnavBtns.forEach(btn => btn.addEventListener('click', () => openSheet(btn.dataset.sheet)));
+  syncMobileNav    = (view) => { if (activeSheet === 'none') setActive(view); };
+
+  mnavBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const nav = btn.dataset.nav;
+      if (nav === 'feed' || nav === 'filters') {
+        if (currentView !== 'map') switchView('map');
+        openSheet(nav);
+      } else {
+        openSheet('none');
+        switchView(nav);
+      }
+    });
+  });
 
   // Tap the map stage to close any open sheet
   document.querySelector('.stage').addEventListener('click', () => {

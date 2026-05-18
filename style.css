@@ -665,4 +665,8 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   }
   .mnav-item.on{color:var(--amber)}
   .mnav-item svg{display:block}
+
+  /* List + Studios — pad bottom so last row clears the nav bar */
+  .list-view{padding:16px 12px calc(56px + 16px)}
+  .studios-view{padding:16px 12px calc(56px + 16px)}
 }
