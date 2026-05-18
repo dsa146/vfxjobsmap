@@ -590,6 +590,7 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   .search-kbd{display:none}
   .search-input{padding-right:36px}
   .topright>a.primary-btn{display:none}
+  .topright>a.icon-btn{display:none}
 
   /* Body — reserve space for mobile nav */
   body{padding-bottom:56px}
