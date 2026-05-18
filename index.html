@@ -80,10 +80,10 @@
       <div class="f-section-head">— Status</div>
       <div class="segmented" id="status-seg">
         <button class="seg-item on" data-v="all">All</button>
-        <button class="seg-item" data-v="critical">Crit</button>
-        <button class="seg-item" data-v="hot">Hot</button>
-        <button class="seg-item" data-v="open">Open</button>
-        <button class="seg-item" data-v="stable">Stable</button>
+        <button class="seg-item" data-v="new">New</button>
+        <button class="seg-item" data-v="recent">Recent</button>
+        <button class="seg-item" data-v="active">Active</button>
+        <button class="seg-item" data-v="ongoing">Ongoing</button>
       </div>
     </div>
 
@@ -142,7 +142,7 @@
         <li><span class="guide-key">Software chips</span> match against job requirements — multi-select supported</li>
         <li><span class="guide-key">Apply Now</span> in the job drawer links to the original posting</li>
         <li><span class="guide-key">View Studio</span> shows all open roles at that studio</li>
-        <li><span class="guide-key">Status</span> reflects how recently a job was posted — Critical means today</li>
+        <li><span class="guide-key">Status</span> reflects how recently a job was posted — New means today</li>
       </ul>
     </div>
 
@@ -151,6 +151,15 @@
       <p style="font-family:var(--font-m);font-size:10px;color:var(--fg-4);line-height:1.6">
         Animation / VFX / Game Industry Job Postings<br>
         Google Spreadsheet by <span style="color:var(--fg-3)">Christopher Mayne</span>
+      </p>
+    </div>
+
+    <div class="guide-section" style="padding-top:16px;padding-bottom:20px">
+      <div class="guide-head">— Developer</div>
+      <p style="font-family:var(--font-m);font-size:10px;color:var(--fg-4);line-height:1.9">
+        Built by <span style="color:var(--fg-3)">Gen Li</span><br>
+        <a href="https://buymeacoffee.com/genli" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none">☕ Buy me a coffee</a><br>
+        <a href="https://github.com/dsa146/vfxjobsmap/issues" target="_blank" rel="noopener" style="color:var(--fg-3);text-decoration:none">🐛 Report an issue</a>
       </p>
     </div>
   </aside>
@@ -186,28 +195,28 @@
     <div class="legend">
       <div class="legend-head"><span>— Status</span><span>⛬</span></div>
       <div class="legend-row">
-        <span class="legend-dot" style="background:var(--critical);box-shadow:0 0 8px var(--critical)"></span>
-        <span class="legend-name">Critical</span>
+        <span class="legend-dot" style="background:var(--new);box-shadow:0 0 8px var(--new)"></span>
+        <span class="legend-name">New</span>
         <span class="legend-age">today</span>
-        <span class="legend-cnt" id="lc-critical">0</span>
+        <span class="legend-cnt" id="lc-new">0</span>
       </div>
       <div class="legend-row">
-        <span class="legend-dot" style="background:var(--hot);box-shadow:0 0 6px var(--hot)"></span>
-        <span class="legend-name">Hot</span>
+        <span class="legend-dot" style="background:var(--recent);box-shadow:0 0 6px var(--recent)"></span>
+        <span class="legend-name">Recent</span>
         <span class="legend-age">1–3d</span>
-        <span class="legend-cnt" id="lc-hot">0</span>
+        <span class="legend-cnt" id="lc-recent">0</span>
       </div>
       <div class="legend-row">
-        <span class="legend-dot" style="background:var(--open);box-shadow:0 0 8px var(--open)"></span>
-        <span class="legend-name">Open</span>
+        <span class="legend-dot" style="background:var(--active);box-shadow:0 0 8px var(--active)"></span>
+        <span class="legend-name">Active</span>
         <span class="legend-age">4–9d</span>
-        <span class="legend-cnt" id="lc-open">0</span>
+        <span class="legend-cnt" id="lc-active">0</span>
       </div>
       <div class="legend-row">
-        <span class="legend-dot" style="background:var(--stable)"></span>
-        <span class="legend-name">Stable</span>
+        <span class="legend-dot" style="background:var(--ongoing)"></span>
+        <span class="legend-name">Ongoing</span>
         <span class="legend-age">10d+</span>
-        <span class="legend-cnt" id="lc-stable">0</span>
+        <span class="legend-cnt" id="lc-ongoing">0</span>
       </div>
     </div>
 

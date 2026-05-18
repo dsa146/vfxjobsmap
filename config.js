@@ -30,6 +30,6 @@ const DISCS = [
 const DISC_MAP = Object.fromEntries(DISCS.map(d => [d.id, d]));
 
 // ── Status ────────────────────────────────────────────────────────────────
-const STATUS_ORDER    = {critical:0, hot:1, open:2, stable:3};
-const STATUS_COLOR    = {critical:'#FF3D5A', hot:'#FF7A3D', open:'#F5A524', stable:'#2BC4D2'};
-const STATUS_PRIORITY = {critical:3, hot:2, open:1, stable:0};
+const STATUS_ORDER    = {new:0, recent:1, active:2, ongoing:3};
+const STATUS_COLOR    = {new:'#FF3D5A', recent:'#FF7A3D', active:'#F5A524', ongoing:'#2BC4D2'};
+const STATUS_PRIORITY = {new:3, recent:2, active:1, ongoing:0};

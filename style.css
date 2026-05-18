@@ -5,7 +5,7 @@
   --line-1:rgba(255,255,255,.06); --line-2:rgba(255,255,255,.10); --line-3:rgba(255,255,255,.16);
   --amber:#F5A524; --amber-l:#FFE9B8; --amber-d:#A36811;
   --cyan:#2BC4D2; --green:#34D399;
-  --critical:#FF3D5A; --hot:#FF7A3D; --open:#F5A524; --stable:#2BC4D2;
+  --new:#FF3D5A; --recent:#FF7A3D; --active:#F5A524; --ongoing:#2BC4D2;
   --disc-comp:#F5A524; --disc-light:#FFD166; --disc-anim:#C77DFF;
   --disc-fx:#FF3D5A; --disc-model:#6DE0EA; --disc-rig:#A8E10C;
   --disc-pipe:#2BC4D2; --disc-prod:#B4B4BC;
@@ -113,7 +113,7 @@ body.light .list-row:hover{background:rgba(0,0,0,.03)}
 .topbar-badge{
   position:absolute;top:-5px;right:-5px;
   min-width:16px;height:16px;border-radius:8px;
-  background:var(--critical);color:#fff;
+  background:var(--new);color:#fff;
   font-family:var(--font-m);font-size:8px;font-weight:700;
   display:flex;align-items:center;justify-content:center;padding:0 3px;
   pointer-events:none;border:1px solid var(--bg-0);
@@ -155,7 +155,7 @@ body.light .list-row:hover{background:rgba(0,0,0,.03)}
   background:transparent;border:1px solid var(--line-2);color:var(--fg-4);
   display:flex;align-items:center;justify-content:center;transition:all .12s;
 }
-.sp-rm:hover{border-color:var(--critical);color:var(--critical)}
+.sp-rm:hover{border-color:var(--new);color:var(--new)}
 body.light .side-panel{background:var(--bg-1)}
 body.light .sp-saved-row:hover{background:rgba(0,0,0,.03)}
 .primary-btn{

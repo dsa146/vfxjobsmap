@@ -36,12 +36,12 @@ function parseSheetDate(raw) {
 
 function getStatus(d) {
   const date = parseSheetDate(d);
-  if (!date) return 'stable';
+  if (!date) return 'ongoing';
   const diffDays = (Date.now() - date.getTime()) / 86400000;
-  if (diffDays < 1)  return 'critical';
-  if (diffDays < 4)  return 'hot';
-  if (diffDays < 10) return 'open';
-  return 'stable';
+  if (diffDays < 1)  return 'new';
+  if (diffDays < 4)  return 'recent';
+  if (diffDays < 10) return 'active';
+  return 'ongoing';
 }
 
 function getPostedH(d) {
@@ -174,10 +174,10 @@ const elHudCountries = document.getElementById('hud-countries');
 const elRailCount    = document.getElementById('rail-count');
 const elStudiosBody  = document.getElementById('studios-body');
 const elLc = {
-  critical: document.getElementById('lc-critical'),
-  hot:      document.getElementById('lc-hot'),
-  open:     document.getElementById('lc-open'),
-  stable:   document.getElementById('lc-stable'),
+  new:     document.getElementById('lc-new'),
+  recent:  document.getElementById('lc-recent'),
+  active:  document.getElementById('lc-active'),
+  ongoing: document.getElementById('lc-ongoing'),
 };
 
 // ── Map ───────────────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ tileDark.addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 
 function worstStatus(statuses) {
-  return statuses.reduce((a,b) => STATUS_PRIORITY[b] > STATUS_PRIORITY[a] ? b : a, 'stable');
+  return statuses.reduce((a,b) => STATUS_PRIORITY[b] > STATUS_PRIORITY[a] ? b : a, 'ongoing');
 }
 
 function makeIcon(status, count) {
@@ -280,16 +280,16 @@ function updateFeedSelected(prevId, nextId) {
 // ── HUD ───────────────────────────────────────────────────────────────────
 function updateHUD() {
   const studios = new Set(), countries = new Set();
-  const cnt = {critical:0, hot:0, open:0, stable:0};
+  const cnt = {new:0, recent:0, active:0, ongoing:0};
   for (const j of filtered) { studios.add(j.s); countries.add(j.co); cnt[j.status]++; }
   elHudJobs.textContent      = filtered.length;
   elHudStudios.textContent   = studios.size;
   elHudCountries.textContent = countries.size;
   elRailCount.textContent    = filtered.length + ' matches';
-  elLc.critical.textContent  = cnt.critical;
-  elLc.hot.textContent       = cnt.hot;
-  elLc.open.textContent      = cnt.open;
-  elLc.stable.textContent    = cnt.stable;
+  elLc.new.textContent     = cnt.new;
+  elLc.recent.textContent  = cnt.recent;
+  elLc.active.textContent  = cnt.active;
+  elLc.ongoing.textContent = cnt.ongoing;
 }
 
 // ── Drawer ────────────────────────────────────────────────────────────────
