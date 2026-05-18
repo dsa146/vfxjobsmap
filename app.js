@@ -1,3 +1,12 @@
+// ── Constants ─────────────────────────────────────────────────────────────
+const FETCH_TIMEOUT_MS  = 20000;
+const FETCH_RETRY_MS    = 2000;
+const FETCH_MAX_RETRIES = 3;
+const SEARCH_DEBOUNCE_MS = 150;
+const SIG_INTERVAL_MS   = 30000;
+const SIG_TIMEOUT_MS    = 4000;
+const NOTIF_SEEN_DELAY_MS = 2000;
+
 // ── Utilities ─────────────────────────────────────────────────────────────
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -7,6 +16,9 @@ function hexRgba(hex, a) {
   const m = hex.replace('#',''); const n = parseInt(m,16);
   return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
 }
+
+function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function swRegex(sw)  { return new RegExp('(?:^|[^a-z0-9])' + escapeRe(sw) + '(?:[^a-z0-9]|$)'); }
 
 // ── Date / age helpers ────────────────────────────────────────────────────
 function parseSheetDate(raw) {
@@ -100,7 +112,7 @@ function fetchSheetJobs() {
     const timer = setTimeout(() => {
       if (script.parentNode) script.parentNode.removeChild(script);
       reject(new Error('Request timed out'));
-    }, 20000);
+    }, FETCH_TIMEOUT_MS);
 
     window.google = window.google || {};
     window.google.visualization = window.google.visualization || {};
@@ -137,7 +149,7 @@ async function initData(attempt) {
     if (sharedJob && JOBS.find(j => j.id === sharedJob)) openDrawer(sharedJob);
   } catch(e) {
     console.error('Sheet fetch failed (attempt ' + attempt + '):', e);
-    if (attempt < 3) { setTimeout(() => initData(attempt + 1), 2000); return; }
+    if (attempt < FETCH_MAX_RETRIES) { setTimeout(() => initData(attempt + 1), FETCH_RETRY_MS); return; }
     elFeedList.innerHTML =
       `<div style="padding:20px;color:#F5A524;font-size:12px;font-family:monospace;line-height:1.8">
         ⚠ Failed to load jobs<br>
@@ -149,7 +161,7 @@ async function initData(attempt) {
 
 // ── App state ─────────────────────────────────────────────────────────────
 let JOBS = [];
-let fDiscs = [], fSofts = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fQuery = '';
+let fDiscs = [], fSofts = [], fSoftRegexes = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fQuery = '';
 let selectedJob = null, filtered = [], lastMapKey = '';
 
 // ── DOM cache ─────────────────────────────────────────────────────────────
@@ -370,7 +382,7 @@ function applyFilters() {
     if (fStatus !== 'all' && j.status !== fStatus) return false;
     if (fRemote !== 'Any' && j.remote !== fRemote) return false;
     if (fRegion && j.r !== fRegion) return false;
-    if (fSofts.length && !fSofts.some(sw => j._hay.includes(sw))) return false;
+    if (fSoftRegexes.length && !fSoftRegexes.some(re => re.test(j._hay))) return false;
     if (fQuery && !j._search.includes(fQuery.toLowerCase())) return false;
     return true;
   });
@@ -405,8 +417,14 @@ DISCS.forEach(d => {
 document.querySelectorAll('.soft-chip').forEach(btn => {
   btn.onclick = () => {
     const sw = btn.textContent.trim().toLowerCase();
-    if (fSofts.includes(sw)) { fSofts = fSofts.filter(x => x !== sw); btn.classList.remove('on'); }
-    else                     { fSofts.push(sw); btn.classList.add('on'); }
+    if (fSofts.includes(sw)) {
+      const i = fSofts.indexOf(sw);
+      fSofts.splice(i, 1); fSoftRegexes.splice(i, 1);
+      btn.classList.remove('on');
+    } else {
+      fSofts.push(sw); fSoftRegexes.push(swRegex(sw));
+      btn.classList.add('on');
+    }
     applyFilters();
   };
 });
@@ -450,7 +468,7 @@ searchEl.addEventListener('input', e => {
   fQuery = e.target.value.trim();
   updateSearchClear();
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(applyFilters, 150);
+  searchTimer = setTimeout(applyFilters, SEARCH_DEBOUNCE_MS);
 });
 clearBtn.addEventListener('click', () => {
   searchEl.value = ''; fQuery = '';
@@ -476,7 +494,7 @@ async function updateSig() {
   try {
     const img = new Image(), t = Date.now();
     await new Promise((res, rej) => {
-      const timeout = setTimeout(() => { img.src = ''; rej(new Error('timeout')); }, 4000);
+      const timeout = setTimeout(() => { img.src = ''; rej(new Error('timeout')); }, SIG_TIMEOUT_MS);
       img.onload = img.onerror = () => { clearTimeout(timeout); res(); };
       img.src = 'https://www.gstatic.com/generate_204?t=' + t;
     });
@@ -484,7 +502,7 @@ async function updateSig() {
   } catch { setSig(0); }
 }
 updateSig();
-setInterval(updateSig, 30000);
+setInterval(updateSig, SIG_INTERVAL_MS);
 
 // ── View navigation ───────────────────────────────────────────────────────
 const mapPanel  = document.querySelector('.main');
@@ -593,7 +611,7 @@ studPanel.addEventListener('click', e => {
 // ── Brand home ────────────────────────────────────────────────────────────
 document.getElementById('brand-home').addEventListener('click', e => {
   e.preventDefault();
-  fQuery = ''; fDiscs = []; fSofts = []; fStatus = 'all'; fRemote = 'Any'; fRegion = '';
+  fQuery = ''; fDiscs = []; fSofts = []; fSoftRegexes = []; fStatus = 'all'; fRemote = 'Any'; fRegion = '';
   document.getElementById('search').value = '';
   updateSearchClear();
   document.querySelectorAll('.disc-chip.on').forEach(b => {
@@ -603,6 +621,7 @@ document.getElementById('brand-home').addEventListener('click', e => {
   document.getElementById('status-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
   document.getElementById('remote-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
   document.getElementById('region-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
+  closeMobileSheet();
   applyFilters(); switchView('map');
 });
 
@@ -727,7 +746,7 @@ function openNotifPanel() {
   const panel = document.getElementById('notif-panel');
   if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
   renderNotifPanel(); panel.classList.remove('hidden');
-  setTimeout(markAllSeen, 2000);
+  setTimeout(markAllSeen, NOTIF_SEEN_DELAY_MS);
 }
 function openSavedPanel() {
   document.getElementById('notif-panel').classList.add('hidden');
@@ -763,6 +782,8 @@ applyFilters();
 initData();
 
 // ── Mobile sheet nav ──────────────────────────────────────────────────────
+let closeMobileSheet = () => {};
+
 (function initMobileNav() {
   const mobileNav = document.getElementById('mobile-nav');
   if (!mobileNav) return;
@@ -782,10 +803,23 @@ initData();
     if (next !== 'none') map.invalidateSize();
   }
 
+  closeMobileSheet = () => openSheet('none');
   mnavBtns.forEach(btn => btn.addEventListener('click', () => openSheet(btn.dataset.sheet)));
 
   // Tap the map stage to close any open sheet
   document.querySelector('.stage').addEventListener('click', () => {
     if (activeSheet !== 'none') openSheet('none');
+  });
+
+  // Handle tap + swipe-down on sheet drag handles
+  ['rail-handle', 'feed-handle'].forEach(id => {
+    const handle = document.getElementById(id);
+    if (!handle) return;
+    let startY = 0;
+    handle.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
+    handle.addEventListener('touchend', e => {
+      if (e.changedTouches[0].clientY - startY > 40) openSheet('none');
+    }, {passive:true});
+    handle.addEventListener('click', () => openSheet('none'));
   });
 })();

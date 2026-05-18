@@ -48,7 +48,6 @@ body.light .feed{background:rgba(238,237,232,.92)}
 body.light .jcard{border-color:var(--line-2)}
 body.light .jcard.selected{background:var(--bg-3)}
 body.light .search-input{background:rgba(238,237,232,.8)}
-body.light .drawer-panel{background:var(--bg-1)}
 body.light .legend{background:rgba(238,237,232,.92)}
 body.light .hud{background:rgba(238,237,232,.85)}
 body.light .studio-card{background:var(--bg-2)}
@@ -569,6 +568,17 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
 /* ── Mobile bottom nav (hidden on desktop) ───────────────── */
 .mobile-nav{display:none}
 
+/* Sheet drag handle (hidden on desktop, shown via mobile sheet positioning) */
+.sheet-handle{
+  display:none;width:100%;padding:14px 0 8px;
+  cursor:grab;flex-shrink:0;
+}
+.sheet-handle::after{
+  content:'';display:block;
+  width:36px;height:4px;border-radius:2px;
+  background:var(--line-3);margin:0 auto;
+}
+
 /* ── Mobile layout (≤768px) ─────────────────────────────── */
 @media (max-width:768px) {
 
@@ -600,6 +610,9 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   /* Timecode — too cramped on mobile */
   .timecode{display:none}
 
+  /* Sheet handles — visible and interactive on mobile */
+  .sheet-handle{display:block}
+
   /* Rail → bottom sheet */
   .rail{
     position:fixed;bottom:56px;left:0;right:0;
@@ -612,11 +625,6 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
     transition:transform .3s var(--ease-out);
   }
   .rail.sheet-open{transform:translateY(0)}
-  .rail::before{
-    content:'';display:block;flex-shrink:0;
-    width:36px;height:4px;border-radius:2px;
-    background:var(--line-3);margin:12px auto 4px;
-  }
   body.light .rail{box-shadow:0 -20px 60px rgba(0,0,0,.15)}
 
   /* Feed → bottom sheet */
@@ -631,18 +639,13 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
     transition:transform .3s var(--ease-out);
   }
   .feed.sheet-open{transform:translateY(0)}
-  .feed::before{
-    content:'';display:block;flex-shrink:0;
-    width:36px;height:4px;border-radius:2px;
-    background:var(--line-3);margin:12px auto 4px;
-  }
   body.light .feed{box-shadow:0 -20px 60px rgba(0,0,0,.15)}
 
   /* Side panels (saved/notif) — full width on mobile */
   .side-panel{width:100%;top:56px}
 
-  /* Drawer — full width */
-  .drawer{width:100%}
+  /* Drawer — full width, pad bottom so actions clear the mobile nav */
+  .drawer{width:100%;padding-bottom:calc(56px + 20px)}
 
   /* Mobile bottom nav */
   .mobile-nav{
