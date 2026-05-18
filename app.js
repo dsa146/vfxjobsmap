@@ -6,6 +6,7 @@ const SEARCH_DEBOUNCE_MS = 150;
 const SIG_INTERVAL_MS   = 30000;
 const SIG_TIMEOUT_MS    = 4000;
 const NOTIF_SEEN_DELAY_MS = 2000;
+const FEED_PAGE_SIZE    = 30;
 
 // ── Utilities ─────────────────────────────────────────────────────────────
 function esc(s) {
@@ -163,6 +164,7 @@ async function initData(attempt) {
 let JOBS = [];
 let fDiscs = [], fSofts = [], fSoftRegexes = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fLevel = '', fQuery = '';
 let selectedJob = null, filtered = [], lastMapKey = '';
+let feedPage = 1, feedObserver = null;
 
 // ── DOM cache ─────────────────────────────────────────────────────────────
 const elFeedList     = document.getElementById('feed-list');
@@ -244,32 +246,61 @@ function buildPopup(city, jobs) {
 // ── Feed ──────────────────────────────────────────────────────────────────
 let feedSorted = [];
 
+function makeCardHTML(j) {
+  const disc = DISC_MAP[j.disc], sc = STATUS_COLOR[j.status];
+  return `<button class="jcard" data-id="${j.id}" onclick="openDrawer('${j.id}')">
+    <div class="jcard-eye">
+      <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
+      <span style="color:${sc};text-transform:uppercase">${j.status}</span>
+      <span class="eye-sep">·</span>
+      <span>${fmtAge(j.postedH)}</span>
+      <span class="eye-id">${j.id}</span>
+    </div>
+    <div class="jcard-title">${esc(j.t)}</div>
+    <div class="jcard-studio">${esc(j.s)} · ${esc(j.c||j.co)}</div>
+    <div class="jcard-tags">
+      <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
+      <span class="jtag">${esc(j.l)}</span>
+      <span class="jtag">${j.remote}</span>
+    </div>
+  </button>`;
+}
+
+function attachFeedObserver() {
+  if (feedObserver) { feedObserver.disconnect(); feedObserver = null; }
+  const sentinel = document.getElementById('feed-sentinel');
+  if (!sentinel) return;
+  feedObserver = new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting) return;
+    feedObserver.disconnect(); feedObserver = null;
+    sentinel.remove();
+    const start = feedPage * FEED_PAGE_SIZE;
+    feedPage++;
+    const slice = feedSorted.slice(start, feedPage * FEED_PAGE_SIZE);
+    slice.forEach(j => elFeedList.insertAdjacentHTML('beforeend', makeCardHTML(j)));
+    if (feedPage * FEED_PAGE_SIZE < feedSorted.length) {
+      elFeedList.insertAdjacentHTML('beforeend', '<div id="feed-sentinel" style="height:1px"></div>');
+      attachFeedObserver();
+    }
+  }, {root: elFeedList, threshold: 0});
+  feedObserver.observe(sentinel);
+}
+
 function renderFeed() {
+  if (feedObserver) { feedObserver.disconnect(); feedObserver = null; }
+  feedPage = 1;
   elFeedCount.textContent = filtered.length + ' events';
   if (!filtered.length) {
     elFeedList.innerHTML = '<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">No matches</div>';
     feedSorted = []; return;
   }
   feedSorted = [...filtered].sort((a,b) => (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
-  elFeedList.innerHTML = feedSorted.map(j => {
-    const disc = DISC_MAP[j.disc], sc = STATUS_COLOR[j.status];
-    return `<button class="jcard" data-id="${j.id}" onclick="openDrawer('${j.id}')">
-      <div class="jcard-eye">
-        <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
-        <span style="color:${sc};text-transform:uppercase">${j.status}</span>
-        <span class="eye-sep">·</span>
-        <span>${fmtAge(j.postedH)}</span>
-        <span class="eye-id">${j.id}</span>
-      </div>
-      <div class="jcard-title">${esc(j.t)}</div>
-      <div class="jcard-studio">${esc(j.s)} · ${esc(j.c||j.co)}</div>
-      <div class="jcard-tags">
-        <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
-        <span class="jtag">${esc(j.l)}</span>
-        <span class="jtag">${j.remote}</span>
-      </div>
-    </button>`;
-  }).join('');
+  const initial = feedSorted.slice(0, FEED_PAGE_SIZE);
+  elFeedList.innerHTML = initial.map(makeCardHTML).join('');
+  if (feedSorted.length > FEED_PAGE_SIZE) {
+    elFeedList.insertAdjacentHTML('beforeend', '<div id="feed-sentinel" style="height:1px"></div>');
+    attachFeedObserver();
+  }
 }
 
 function updateFeedSelected(prevId, nextId) {
