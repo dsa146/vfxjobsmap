@@ -761,3 +761,31 @@ document.addEventListener('click', e => {
 
 applyFilters();
 initData();
+
+// ── Mobile sheet nav ──────────────────────────────────────────────────────
+(function initMobileNav() {
+  const mobileNav = document.getElementById('mobile-nav');
+  if (!mobileNav) return;
+  const railEl   = document.querySelector('.rail');
+  const feedEl   = document.querySelector('.feed');
+  const mnavBtns = mobileNav.querySelectorAll('.mnav-item');
+  let activeSheet = 'none';
+
+  function openSheet(name) {
+    const next = (name === activeSheet && name !== 'none') ? 'none' : name;
+    activeSheet = next;
+    railEl.classList.toggle('sheet-open', next === 'filters');
+    feedEl.classList.toggle('sheet-open', next === 'feed');
+    mnavBtns.forEach(b => b.classList.toggle('on',
+      next === 'none' ? b.dataset.sheet === 'none' : b.dataset.sheet === next
+    ));
+    if (next !== 'none') map.invalidateSize();
+  }
+
+  mnavBtns.forEach(btn => btn.addEventListener('click', () => openSheet(btn.dataset.sheet)));
+
+  // Tap the map stage to close any open sheet
+  document.querySelector('.stage').addEventListener('click', () => {
+    if (activeSheet !== 'none') openSheet('none');
+  });
+})();
