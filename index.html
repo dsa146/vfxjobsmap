@@ -39,6 +39,33 @@ button{font-family:inherit;cursor:pointer}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07)}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.14)}
 
+/* ── Theme cross-fade (View Transitions) ─────────────────── */
+::view-transition-old(root) { animation: vt-fade-out 0.35s ease forwards; }
+::view-transition-new(root) { animation: vt-fade-in  0.35s ease forwards; }
+@keyframes vt-fade-out { from { opacity:1 } to { opacity:0 } }
+@keyframes vt-fade-in  { from { opacity:0 } to { opacity:1 } }
+#map { view-transition-name: vfxmap; }
+::view-transition-old(vfxmap) { animation: vt-fade-out 0.35s ease forwards; }
+::view-transition-new(vfxmap) { animation: vt-fade-in  0.35s ease forwards; }
+
+/* ── Light mode ─────────────────────────────────────────── */
+body.light{
+  --bg-0:#F5F5F0; --bg-1:#EEEDE8; --bg-2:#E5E4DE; --bg-3:#DDDCD6; --bg-4:#D4D3CC;
+  --fg-1:#1A1A18; --fg-2:#3A3A36; --fg-3:#6A6A64; --fg-4:#9A9A94;
+  --line-1:rgba(0,0,0,.06); --line-2:rgba(0,0,0,.10); --line-3:rgba(0,0,0,.18);
+}
+body.light .topbar{background:rgba(245,245,240,.92)}
+body.light .rail{background:rgba(238,237,232,.92)}
+body.light .feed{background:rgba(238,237,232,.92)}
+body.light .jcard{border-color:var(--line-2)}
+body.light .jcard.selected{background:var(--bg-3)}
+body.light .search-input{background:rgba(238,237,232,.8)}
+body.light .drawer-panel{background:var(--bg-1)}
+body.light .legend{background:rgba(238,237,232,.92)}
+body.light .hud{background:rgba(238,237,232,.85)}
+body.light .studio-card{background:var(--bg-2)}
+body.light .list-row:hover{background:rgba(0,0,0,.03)}
+
 /* ── TopBar ──────────────────────────────────────────────── */
 .topbar{
   flex:none;height:56px;display:flex;align-items:center;gap:24px;
@@ -89,12 +116,61 @@ button{font-family:inherit;cursor:pointer}
 .topnav a:hover,.topnav a.active{color:var(--fg-1)}
 .topright{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
 .icon-btn{
+  position:relative;
   width:32px;height:32px;background:transparent;
   border:1px solid var(--line-2);color:var(--fg-2);
   display:flex;align-items:center;justify-content:center;
   transition:border-color .12s,color .12s;
 }
 .icon-btn:hover{border-color:var(--line-3);color:var(--fg-1)}
+.topbar-badge{
+  position:absolute;top:-5px;right:-5px;
+  min-width:16px;height:16px;border-radius:8px;
+  background:var(--critical);color:#fff;
+  font-family:var(--font-m);font-size:8px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;padding:0 3px;
+  pointer-events:none;border:1px solid var(--bg-0);
+}
+.side-panel{
+  position:fixed;top:56px;right:0;bottom:0;
+  width:min(420px,90vw);
+  background:var(--bg-1);border-left:1px solid var(--line-2);
+  display:flex;flex-direction:column;z-index:90;
+  box-shadow:-20px 0 50px rgba(0,0,0,.6);
+  animation:vfxSlide .2s var(--ease-out);
+}
+.sp-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--line-2);flex:none;
+}
+.sp-title{font-family:var(--font-m);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-3)}
+.sp-count{font-family:var(--font-m);font-size:10px;color:var(--fg-4)}
+.sp-close{
+  background:transparent;border:1px solid var(--line-2);color:var(--fg-2);
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.sp-close:hover{border-color:var(--line-3);color:var(--fg-1)}
+.sp-body{flex:1;overflow-y:auto}
+.sp-empty{
+  padding:40px 20px;text-align:center;
+  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--fg-4);line-height:2;
+}
+.sp-saved-row{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;border-bottom:1px solid var(--line-1);
+  cursor:pointer;transition:background .1s;
+}
+.sp-saved-row:hover{background:rgba(255,255,255,.025)}
+.sp-rm{
+  margin-left:auto;flex:none;width:22px;height:22px;
+  background:transparent;border:1px solid var(--line-2);color:var(--fg-4);
+  display:flex;align-items:center;justify-content:center;transition:all .12s;
+}
+.sp-rm:hover{border-color:var(--critical);color:var(--critical)}
+body.light .side-panel{background:var(--bg-1)}
+body.light .sp-saved-row:hover{background:rgba(0,0,0,.03)}
 .primary-btn{
   background:var(--amber);color:#1a1200;border:0;
   padding:8px 16px;font-family:var(--font-m);font-size:11px;
@@ -115,6 +191,15 @@ button{font-family:inherit;cursor:pointer}
   font-family:var(--font-m);font-size:9px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--fg-4);border-bottom:1px solid var(--line-1);
 }
+.list-col-btn{
+  background:none;border:none;padding:0;color:inherit;font:inherit;letter-spacing:inherit;
+  text-transform:inherit;cursor:pointer;display:flex;align-items:center;gap:5px;
+  transition:color .12s;
+}
+.list-col-btn:hover{color:var(--fg-2)}
+.list-col-btn.active{color:var(--fg-1)}
+.list-sort-icon{font-size:9px;opacity:.4;line-height:1}
+.list-col-btn.active .list-sort-icon{opacity:1;color:var(--amber)}
 .list-row{
   display:grid;grid-template-columns:2fr 1.4fr 1fr .8fr .8fr .8fr;
   gap:12px;padding:10px 12px;border-bottom:1px solid var(--line-1);
@@ -184,6 +269,12 @@ button{font-family:inherit;cursor:pointer}
 .disc-chip:hover{border-color:var(--line-3);color:var(--fg-1)}
 .disc-chip.on{background:rgba(255,255,255,.05)}
 .chip-dot{width:6px;height:6px;border-radius:999px;flex:none}
+.guide-section{padding:20px 0 8px;border-top:1px solid var(--line-1);margin-top:8px}
+.guide-head{font-family:var(--font-m);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-4);margin-bottom:12px}
+.guide-list{list-style:none;display:flex;flex-direction:column;gap:9px}
+.guide-list li{font-family:var(--font-m);font-size:10px;color:var(--fg-3);line-height:1.5;padding-left:10px;position:relative}
+.guide-list li::before{content:'·';position:absolute;left:0;color:var(--fg-4)}
+.guide-key{color:var(--fg-2);font-weight:500}
 .soft-chip{
   background:rgba(255,255,255,.02);border:1px solid var(--line-2);
   color:var(--fg-2);font-family:var(--font-m);font-size:10px;
@@ -231,6 +322,21 @@ button{font-family:inherit;cursor:pointer}
 .leaflet-popup-tip{background:rgba(14,14,18,.95)!important}
 .leaflet-popup-close-button{color:var(--fg-3)!important;font-size:18px!important;top:8px!important;right:10px!important}
 
+/* Light mode — Leaflet overrides */
+body.light .leaflet-control-zoom{border-color:rgba(0,0,0,.12)!important}
+body.light .leaflet-control-zoom a{background:rgba(245,245,240,.95)!important;color:var(--fg-2)!important;border-bottom-color:rgba(0,0,0,.10)!important}
+body.light .leaflet-control-zoom a:hover{background:rgba(230,229,224,.95)!important;color:var(--fg-1)!important}
+body.light .leaflet-control-attribution{background:rgba(245,245,240,.7)!important}
+body.light .leaflet-popup-content-wrapper{background:rgba(245,245,240,.98)!important;border-color:rgba(0,0,0,.12)!important;box-shadow:0 8px 32px rgba(0,0,0,.15)!important}
+body.light .leaflet-popup-tip{background:rgba(245,245,240,.98)!important}
+body.light .leaflet-popup-close-button{color:var(--fg-3)!important}
+body.light .pop-job:hover{background:rgba(0,0,0,.04)}
+body.light .timecode{background:rgba(245,245,240,.85)!important;border-color:rgba(0,0,0,.12)!important;color:var(--fg-2)}
+body.light .stage{background:var(--bg-0)}
+body.light #map{background:var(--bg-0)}
+body.light .leaflet-container{background:var(--bg-0)!important}
+body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
+
 /* Custom pin marker */
 .pin-wrap{position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
 .pin-pulse{
@@ -239,8 +345,9 @@ button{font-family:inherit;cursor:pointer}
 }
 .pin-dot{width:8px;height:8px;border-radius:999px;position:relative;z-index:2;flex:none}
 .pin-count{
-  position:absolute;font-family:var(--font-m);font-size:8px;font-weight:700;
-  color:#07070A;z-index:3;pointer-events:none;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--font-m);font-size:8px;font-weight:700;
+  color:#07070A;z-index:3;pointer-events:none;white-space:nowrap;
 }
 /* Focused pin */
 .pin-wrap.focused .pin-dot{width:12px;height:12px}
@@ -302,6 +409,7 @@ button{font-family:inherit;cursor:pointer}
 .legend-dot{width:10px;height:10px;border-radius:999px;flex:none}
 .legend-name{font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;flex:1}
 .legend-cnt{font-family:var(--font-m);font-size:11px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.legend-age{font-family:var(--font-m);font-size:9px;color:var(--fg-4);letter-spacing:.08em;flex:1}
 
 /* ── Film crops + Timecode ───────────────────────────────── */
 .crop{
@@ -348,10 +456,10 @@ button{font-family:inherit;cursor:pointer}
 /* Job Card */
 .jcard{
   display:block;width:100%;text-align:left;
-  background:rgba(22,22,28,.7);border:1px solid var(--line-1);
+  background:var(--bg-2);border:1px solid var(--line-1);
   padding:12px 14px;transition:all .12s;color:inherit;
 }
-.jcard:hover{border-color:var(--line-2);background:rgba(30,30,38,.7)}
+.jcard:hover{border-color:var(--line-2);background:var(--bg-3)}
 .jcard.selected{
   border-color:rgba(245,165,36,.6);
   background:rgba(245,165,36,.04);
@@ -436,7 +544,7 @@ button{font-family:inherit;cursor:pointer}
 .drawer-body{font-family:var(--font-s);font-size:14px;line-height:1.55;color:var(--fg-2)}
 .studio-row{
   display:flex;align-items:center;justify-content:space-between;
-  background:rgba(22,22,28,.7);border:1px solid var(--line-1);padding:12px 14px;
+  background:var(--bg-2);border:1px solid var(--line-1);padding:12px 14px;
 }
 .studio-name{font-family:var(--font-s);font-weight:600;font-size:15px;color:var(--fg-1)}
 .studio-meta{font-family:var(--font-m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-3);margin-top:4px}
@@ -498,11 +606,17 @@ button{font-family:inherit;cursor:pointer}
   </nav>
 
   <div class="topright">
-    <button class="icon-btn" aria-label="Alerts">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle light/dark mode">
+      <svg id="theme-icon-dark" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="theme-icon-light" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
-    <button class="icon-btn" aria-label="Saved">
+    <button class="icon-btn" id="notif-btn" aria-label="New jobs">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+      <span class="topbar-badge" id="notif-badge" style="display:none">0</span>
+    </button>
+    <button class="icon-btn" id="saved-btn" aria-label="Saved jobs">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      <span class="topbar-badge" id="save-badge" style="display:none;background:var(--amber);color:#1a1200">0</span>
     </button>
     <button class="primary-btn">Sign in</button>
   </div>
@@ -579,6 +693,20 @@ button{font-family:inherit;cursor:pointer}
         <button class="soft-chip">Redshift</button>
       </div>
     </div>
+
+    <div class="guide-section">
+      <div class="guide-head">— How to Use</div>
+      <ul class="guide-list">
+        <li><span class="guide-key">Search</span> by studio, role, or city in the top bar</li>
+        <li><span class="guide-key">Click a pin</span> on the map to see all jobs at that location</li>
+        <li><span class="guide-key">Click a job card</span> in the feed to open full details</li>
+        <li><span class="guide-key">Discipline chips</span> filter by department — multi-select supported</li>
+        <li><span class="guide-key">Software chips</span> match against job requirements — multi-select supported</li>
+        <li><span class="guide-key">Apply Now</span> in the job drawer links to the original posting</li>
+        <li><span class="guide-key">View Studio</span> shows all open roles at that studio</li>
+        <li><span class="guide-key">Status</span> reflects how recently a job was posted — Critical means today</li>
+      </ul>
+    </div>
   </aside>
 
   <!-- Map Stage -->
@@ -590,7 +718,7 @@ button{font-family:inherit;cursor:pointer}
       <div class="hud-head">
         <span class="hud-dot"></span>
         <span class="hud-title">— Live Feed</span>
-        <span class="hud-sig">SIG 98%</span>
+        <span class="hud-sig" id="sig-hud">SIG —%</span>
       </div>
       <div class="hud-grid">
         <div class="hud-stat">
@@ -614,21 +742,25 @@ button{font-family:inherit;cursor:pointer}
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--critical);box-shadow:0 0 8px var(--critical)"></span>
         <span class="legend-name">Critical</span>
+        <span class="legend-age">today</span>
         <span class="legend-cnt" id="lc-critical">0</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--hot);box-shadow:0 0 6px var(--hot)"></span>
         <span class="legend-name">Hot</span>
+        <span class="legend-age">1–3d</span>
         <span class="legend-cnt" id="lc-hot">0</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--open);box-shadow:0 0 8px var(--open)"></span>
         <span class="legend-name">Open</span>
+        <span class="legend-age">4–9d</span>
         <span class="legend-cnt" id="lc-open">0</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--stable)"></span>
         <span class="legend-name">Stable</span>
+        <span class="legend-age">10d+</span>
         <span class="legend-cnt" id="lc-stable">0</span>
       </div>
     </div>
@@ -648,7 +780,7 @@ button{font-family:inherit;cursor:pointer}
       <span class="tc-sep">·</span>
       <span>2.39:1</span>
       <span class="tc-sep">·</span>
-      <span class="tc-sig">SIG 98%</span>
+      <span class="tc-sig" id="sig-tc">SIG —%</span>
     </div>
   </section>
 
@@ -703,20 +835,49 @@ button{font-family:inherit;cursor:pointer}
         Apply now
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
-      <button class="ghost-btn-lg">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        Save
+      <button class="ghost-btn-lg" id="drawer-save">
+        <svg id="drawer-save-icon-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <svg id="drawer-save-icon-on" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="1.8" style="display:none;color:var(--amber)"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span id="drawer-save-label">Save</span>
       </button>
     </div>
   </div>
+</div>
+
+<!-- ── Notifications Panel ── -->
+<div class="side-panel hidden" id="notif-panel">
+  <div class="sp-head">
+    <span class="sp-title">— New Since Last Visit</span>
+    <span class="sp-count" id="notif-count"></span>
+    <button class="sp-close" id="notif-close">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="sp-body" id="notif-body"></div>
+</div>
+
+<!-- ── Saved Panel ── -->
+<div class="side-panel hidden" id="saved-panel">
+  <div class="sp-head">
+    <span class="sp-title">— Saved Jobs</span>
+    <span class="sp-count" id="saved-count"></span>
+    <button class="sp-close" id="saved-close">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="sp-body" id="saved-body"></div>
 </div>
 
 <!-- ── List View Panel ── -->
 <div class="view-panel" id="panel-list">
   <div class="list-view">
     <div class="list-table-head">
-      <span>Role</span><span>Studio</span><span>Location</span>
-      <span>Mode</span><span>Level</span><span>Status</span>
+      <button class="list-col-btn" data-col="t">Role<span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="s">Studio<span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="c">Location<span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="w">Mode<span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="l">Level<span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="status">Status<span class="list-sort-icon">↕</span></button>
     </div>
     <div id="list-body"></div>
   </div>
@@ -731,6 +892,10 @@ button{font-family:inherit;cursor:pointer}
 // ── Sheet data ─────────────────────────────────────────────────────────────
 let JOBS = [];
 const SHEET_ID = '1eR2oAXOuflr8CZeGoz3JTrsgNj3KuefbdXJOmNtjEVM';
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 function parseSheetDate(raw) {
   if (!raw) return null;
@@ -755,44 +920,72 @@ function parseGvizRows(rows) {
     const dateStr = dateRaw ? String(dateRaw).replace(/,?\s*\d{4}$/, '').trim() : '';
     return { s:studio, c:get(2), co:get(6), t:title, l:get(10), w:get(12), d:dateStr,
              r:get(22), u:get(16), sw:get(18), n:get(20) };
-  }).filter(Boolean).map((j, i) => ({
-    ...j,
-    id: 'JOB-' + String(i+1).padStart(4,'0'),
-    disc: getDisc(j.t), status: getStatus(j.d), postedH: getPostedH(j.d),
-    remote: getRemote(j.w), ll: getCoords(j),
-  }));
+  }).filter(Boolean).map((j, i) => {
+    const base = {
+      ...j,
+      id: 'JOB-' + String(i+1).padStart(4,'0'),
+      disc: getDisc(j.t), status: getStatus(j.d), postedH: getPostedH(j.d),
+      remote: getRemote(j.w), ll: getCoords(j),
+    };
+    base._hay    = `${base.t} ${base.sw||''} ${base.n}`.toLowerCase();
+    base._search = `${base.t} ${base.s} ${base.c} ${base.co}`.toLowerCase();
+    return base;
+  });
 }
 
 function fetchSheetJobs() {
   return new Promise((resolve, reject) => {
-    const cbName = '__gviz' + Date.now();
     const script = document.createElement('script');
-    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 12000);
-    function cleanup() {
-      clearTimeout(timer);
-      delete window[cbName];
+    const timer = setTimeout(() => {
       if (script.parentNode) script.parentNode.removeChild(script);
-    }
-    window[cbName] = function(res) {
-      cleanup();
-      try { resolve(parseGvizRows(res.table.rows)); } catch(e) { reject(e); }
+      reject(new Error('Request timed out'));
+    }, 20000);
+
+    window.google = window.google || {};
+    window.google.visualization = window.google.visualization || {};
+    window.google.visualization.Query = {
+      setResponse: function(res) {
+        clearTimeout(timer);
+        if (script.parentNode) script.parentNode.removeChild(script);
+        if (!res || !res.table) {
+          const msg = res && res.errors ? res.errors[0].detailed_message || res.errors[0].message : 'No data returned';
+          reject(new Error(msg));
+          return;
+        }
+        try { resolve(parseGvizRows(res.table.rows)); } catch(e) { reject(e); }
+      }
     };
-    script.onerror = () => { cleanup(); reject(new Error('Script load error')); };
-    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}`;
+
+    script.onerror = () => {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('Network error — check internet connection'));
+    };
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
     document.head.appendChild(script);
   });
 }
 
-async function initData() {
-  document.getElementById('feed-list').innerHTML =
-    '<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">Loading jobs…</div>';
+async function initData(attempt) {
+  attempt = attempt || 1;
+  elFeedList.innerHTML = `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">
+    Loading jobs${attempt > 1 ? ' (attempt ' + attempt + ')' : ''}…</div>`;
   try {
     JOBS = await fetchSheetJobs();
+    computeNewJobs();
     applyFilters();
   } catch(e) {
-    console.error('Sheet fetch failed:', e);
-    document.getElementById('feed-list').innerHTML =
-      '<div style="padding:20px;color:#F5A524;font-size:12px;font-family:monospace">⚠ Failed to load jobs.</div>';
+    console.error('Sheet fetch failed (attempt ' + attempt + '):', e);
+    if (attempt < 3) {
+      setTimeout(() => initData(attempt + 1), 2000);
+      return;
+    }
+    elFeedList.innerHTML =
+      `<div style="padding:20px;color:#F5A524;font-size:12px;font-family:monospace;line-height:1.8">
+        ⚠ Failed to load jobs<br>
+        <span style="color:#7A7A85;font-size:11px">${esc(e.message)}</span><br><br>
+        <button onclick="initData()" style="background:var(--amber);color:#1a1200;border:0;padding:6px 14px;font-family:monospace;font-size:11px;letter-spacing:.12em;cursor:pointer">RETRY</button>
+      </div>`;
   }
 }
 
@@ -813,7 +1006,11 @@ const CC = {
   "Portsmouth":[50.8198,-1.088],"Edinburgh":[55.9533,-3.1883],
   "Dublin":[53.3498,-6.2603],"Kuala Lumpur":[3.139,101.6869],
   "Ho Chi Minh City":[10.8231,106.6297],"Kyiv":[50.4501,30.5234],
-  "Shanghai":[31.2304,121.4737],"Warsaw":[52.2297,21.0122],
+  "Shanghai":[31.2304,121.4737],"Beijing":[39.9042,116.4074],"Shenzhen":[22.5431,114.0579],"Hong Kong":[22.3193,114.1694],
+  "Guangzhou":[23.1291,113.2644],"Hangzhou":[30.2741,120.1551],"Chengdu":[30.5728,104.0668],
+  "Nanjing":[32.0617,118.7778],"Wuhan":[30.5928,114.3052],"Xi'an":[34.3416,108.9398],
+  "Chongqing":[29.5630,106.5516],"Tianjin":[39.3434,117.3616],"Suzhou":[31.2990,120.5853],
+  "Warsaw":[52.2297,21.0122],
   "Barcelona":[41.3851,2.1734],"Malmö":[55.605,13.0038],
   "Woodland Hills":[34.1683,-118.6058],"Seattle":[47.6062,-122.3321],
   "Chicago":[41.8781,-87.6298],"Osaka":[34.6937,135.5023],
@@ -827,10 +1024,49 @@ const CC = {
   "Salzburg":[47.8095,13.055],"Northampton":[52.2405,-0.9027],
   "Munich":[48.1351,11.582],"New York City":[40.7128,-74.006],
   "Sunnyvale":[37.3688,-122.0363],"Paris":[48.8566,2.3522],
-  "Lucknow":[26.8467,80.9462],"Foetz":[49.5375,6.0544],
+  "Lucknow":[26.8467,80.9462],"Foetz":[49.5375,6.1139],
   "Culver City":[34.0211,-118.3965],"Madrid":[40.4168,-3.7038],
   "Santa Cruz de Tenerife":[28.4636,-16.2518],"Glendale":[34.1425,-118.2551],
-  "Cambridge":[52.2053,0.1218],"Daresbury":[53.3465,-2.651],
+  "Cambridge":[52.2053,0.1218],
+  "Buenos Aires":[-34.6037,-58.3816],"Montevideo":[-34.9011,-56.1645],
+  "Guadalajara":[20.6597,-103.3496],"Medellín":[6.2442,-75.5812],
+  "Porto Alegre":[-30.0346,-51.2177],
+  "Cairo":[30.0444,31.2357],"Alexandria":[31.2001,29.9187],
+  "Cape Town":[-33.9249,18.4241],"Johannesburg":[-26.2041,28.0473],
+  "Lagos":[6.5244,3.3792],"Nairobi":[-1.2921,36.8219],
+  "Casablanca":[33.5731,-7.5898],"Tunis":[36.8065,10.1815],
+  "Melbourne":[-37.8136,144.9631],
+  "Seoul":[37.5665,126.9780],"Singapore":[1.3521,103.8198],
+  "Hanoi":[21.0285,105.8542],"Petaling Jaya":[3.1678,101.5968],
+  "Moscow":[55.7558,37.6173],"Yerevan":[40.1792,44.4991],
+  "New Delhi":[28.6139,77.2090],"Pune":[18.5204,73.8567],
+  "Berlin":[52.5200,13.4050],"Frankfurt":[50.1109,8.6821],"Erfurt":[50.9850,11.0299],
+  "Milan":[45.4642,9.1900],"Lisbon":[38.7223,-9.1393],"Porto":[41.1579,-8.6291],
+  "Valencia":[39.4699,-0.3763],"Las Palmas":[28.0029,-15.5956],"Zamora":[41.5046,-5.7449],
+  "Athens":[37.9838,23.7275],"Sofia":[42.6977,23.3219],"Belgrade":[44.8176,20.4633],
+  "Wrocław":[51.1079,17.0385],"Kraków":[50.0647,19.9450],"Krakow":[50.0647,19.9450],"Łódź":[51.7656,19.4556],
+  "Rødovre":[55.6561,12.4804],"Waasmunster":[51.1169,4.0718],
+  "Newcastle":[54.9783,-1.6178],"Cardiff":[51.4816,-3.1791],
+  "Sheffield":[53.3811,-1.4701],"Bristol":[51.4545,-2.5879],"Bournemouth":[50.7352,-1.8304],
+  "Kilkenny":[52.6409,-7.2519],
+  "São Paulo":[-23.5505,-46.6333],"Mexico City":[19.4326,-99.1332],
+  "Atlanta":[33.7490,-84.3880],"Austin":[30.2672,-97.7431],"Boston":[42.3601,-71.0589],
+  "Burbank":[34.1899,-118.3089],"Bellevue":[47.6101,-122.2015],"Kirkland":[47.6769,-122.2060],
+  "San Mateo":[37.5630,-122.3255],"Novato":[38.1075,-122.5697],"Cary":[35.7915,-78.7811],
+  "Madison":[43.0731,-89.4012],"Sherman Oaks":[34.1592,-118.4514],
+  "Albany":[42.6526,-73.7562],"Troy":[42.7284,-73.6918],"Rye":[40.9815,-73.6873],
+  "Winnipeg":[49.8951,-97.1384],"Ottawa":[45.4215,-75.6972],"Quebec":[46.8139,-71.2080],
+  "New York":[40.7128,-74.0060],"Montréal":[45.5017,-73.5673],
+
+  // ── Disambiguated city|country keys (override plain city lookup) ──────
+  "Cambridge|United States":[42.3736,-71.1097],   // Cambridge, MA — not UK
+  "Cambridge|Canada":[43.3616,-80.3144],           // Cambridge, Ontario
+  "Brisbane|United States":[37.6857,-122.3981],    // Brisbane, CA — not Australia
+  "Oxford|United States":[39.5065,-84.7452],       // Oxford, OH — not UK
+  "Portsmouth|United States":[43.0718,-70.7626],   // Portsmouth, NH — not UK
+  "Manchester|United States":[42.9956,-71.4548],   // Manchester, NH — not UK
+  "Sydney|Canada":[46.1382,-60.1981],              // Sydney, Nova Scotia
+  "Glasgow|United States":[37.0000,-85.9119],      // Glasgow, KY — not Scotland
 };
 const CO_LL = {
   "Colombia":[4.711,-74.0721],"Gibraltar":[36.1408,-5.3536],
@@ -846,6 +1082,20 @@ const CO_LL = {
   "Vietnam":[14.06,108.28],"Malaysia":[4.21,101.97],
   "Japan":[36.2,138.25],"Poland":[51.92,19.15],
   "Türkiye":[38.96,35.24],
+  "Brazil":[-14.235,-51.925],"Argentina":[-38.416,-63.617],
+  "Uruguay":[-32.523,-55.766],"Mexico":[23.635,-102.553],
+  "Chile":[-35.675,-71.543],"Peru":[-9.19,-75.015],
+  "Egypt":[26.820,30.802],"South Africa":[-30.560,22.938],
+  "Nigeria":[9.082,8.675],"Kenya":[-0.023,37.906],
+  "Morocco":[31.792,-7.092],"Tunisia":[33.887,9.537],
+  "Ghana":[7.946,-1.023],"Ethiopia":[9.145,40.489],
+  "Tanzania":[-6.369,34.889],"Algeria":[28.034,1.659],
+  "France":[46.228,2.214],"South Korea":[35.908,127.767],
+  "Belgium":[50.504,4.470],"Denmark":[56.264,9.502],
+  "Serbia":[44.017,21.006],"Armenia":[40.069,45.038],
+  "Russia":[61.524,105.319],"Portugal":[39.400,-8.225],
+  "Bulgaria":[42.734,25.486],"Greece":[39.074,21.824],
+  "Singapore":[1.352,103.820],"United Kingdom":[54.597,-3.436],
 };
 
 // ── Disciplines ───────────────────────────────────────────────────────────
@@ -859,6 +1109,8 @@ const DISCS = [
   {id:'prod',  label:'Production',color:'#B4B4BC'},
   {id:'rig',   label:'Rigging',   color:'#A8E10C'},
 ];
+const DISC_MAP = Object.fromEntries(DISCS.map(d => [d.id, d]));
+const STATUS_ORDER = {critical:0,hot:1,open:2,stable:3};
 
 function getDisc(title) {
   const t = title.toLowerCase();
@@ -897,7 +1149,8 @@ function getRemote(w) {
 }
 
 function getCoords(j) {
-  return (j.c && CC[j.c]) ? CC[j.c] : (CO_LL[j.co] || null);
+  if (!j.c) return CO_LL[j.co] || null;
+  return CC[j.c + '|' + j.co] || CC[j.c] || CO_LL[j.co] || null;
 }
 
 
@@ -912,6 +1165,7 @@ let fRegion = '';
 let fQuery = '';
 let selectedJob = null;
 let filtered = [];
+let lastMapKey = '';
 
 // ── Map ───────────────────────────────────────────────────────────────────
 const map = L.map('map', {
@@ -921,10 +1175,10 @@ const map = L.map('map', {
   maxBounds: [[-90, -180], [90, 180]],
   maxBoundsViscosity: 1.0,
 });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains: 'abcd', maxZoom: 19,
-}).addTo(map);
+const ATTR = '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+const tileDark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',  {attribution:ATTR, subdomains:'abcd', maxZoom:19});
+const tileLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {attribution:ATTR, subdomains:'abcd', maxZoom:19});
+tileDark.addTo(map);
 
 const markerLayer = L.layerGroup().addTo(map);
 
@@ -945,6 +1199,9 @@ function makeIcon(status, count) {
 }
 
 function updateMap() {
+  const key = filtered.map(j=>j.id).join(',');
+  if (key === lastMapKey) return;
+  lastMapKey = key;
   markerLayer.clearLayers();
   const groups = {};
   filtered.forEach(j => {
@@ -964,35 +1221,37 @@ function updateMap() {
 
 function buildPopup(city, jobs) {
   const rows = jobs.map(j => {
-    const disc = DISCS.find(d=>d.id===j.disc);
+    const disc = DISC_MAP[j.disc];
     return `<div class="pop-job" onclick="openDrawer('${j.id}')">
-      <div class="pop-job-title">${j.t}</div>
-      <div class="pop-job-studio">${j.s}</div>
+      <div class="pop-job-title">${esc(j.t)}</div>
+      <div class="pop-job-studio">${esc(j.s)}</div>
       <div class="pop-tags">
         <span class="ptag" style="color:${disc?.color};border-color:${disc?.color}44">${disc?.label}</span>
-        <span class="ptag">${j.l}</span>
+        <span class="ptag">${esc(j.l)}</span>
         <span class="ptag">${j.remote}</span>
       </div>
     </div>`;
   }).join('');
-  return `<div class="pop-head"><div class="pop-city">${city}</div><div class="pop-cnt">${jobs.length} position${jobs.length!==1?'s':''}</div></div><div class="pop-list">${rows}</div>`;
+  return `<div class="pop-head"><div class="pop-city">${esc(city)}</div><div class="pop-cnt">${jobs.length} position${jobs.length!==1?'s':''}</div></div><div class="pop-list">${rows}</div>`;
 }
 
 // ── Feed ──────────────────────────────────────────────────────────────────
+let feedSorted = [];
+
 function renderFeed() {
-  const list = document.getElementById('feed-list');
-  document.getElementById('feed-count').textContent = filtered.length + ' events';
+  elFeedCount.textContent = filtered.length + ' events';
 
   if (!filtered.length) {
-    list.innerHTML = '<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">No matches</div>';
+    elFeedList.innerHTML = '<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">No matches</div>';
+    feedSorted = [];
     return;
   }
 
-  list.innerHTML = filtered.map(j => {
-    const disc = DISCS.find(d=>d.id===j.disc);
+  feedSorted = [...filtered].sort((a,b) => (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
+  elFeedList.innerHTML = feedSorted.map(j => {
+    const disc = DISC_MAP[j.disc];
     const sc = STATUS_COLOR[j.status];
-    const isSelected = selectedJob && selectedJob.id === j.id;
-    return `<button class="jcard${isSelected?' selected':''}" onclick="openDrawer('${j.id}')">
+    return `<button class="jcard" data-id="${j.id}" onclick="openDrawer('${j.id}')">
       <div class="jcard-eye">
         <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
         <span style="color:${sc};text-transform:uppercase">${j.status}</span>
@@ -1000,29 +1259,39 @@ function renderFeed() {
         <span>${j.postedH}h ago</span>
         <span class="eye-id">${j.id}</span>
       </div>
-      <div class="jcard-title">${j.t}</div>
-      <div class="jcard-studio">${j.s} · ${j.c||j.co}</div>
+      <div class="jcard-title">${esc(j.t)}</div>
+      <div class="jcard-studio">${esc(j.s)} · ${esc(j.c||j.co)}</div>
       <div class="jcard-tags">
         <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
-        <span class="jtag">${j.l}</span>
+        <span class="jtag">${esc(j.l)}</span>
         <span class="jtag">${j.remote}</span>
       </div>
     </button>`;
   }).join('');
 }
 
+function updateFeedSelected(prevId, nextId) {
+  if (prevId) elFeedList.querySelector(`[data-id="${prevId}"]`)?.classList.remove('selected');
+  if (nextId) elFeedList.querySelector(`[data-id="${nextId}"]`)?.classList.add('selected');
+}
+
 // ── HUD & Legend ──────────────────────────────────────────────────────────
 function updateHUD() {
-  document.getElementById('hud-jobs').textContent = filtered.length;
-  document.getElementById('hud-studios').textContent = new Set(filtered.map(j=>j.s)).size;
-  document.getElementById('hud-countries').textContent = new Set(filtered.map(j=>j.co)).size;
-  document.getElementById('rail-count').textContent = filtered.length + ' matches';
-
-  const cnt = {critical:0,hot:0,open:0,stable:0};
-  filtered.forEach(j => { if(cnt[j.status]!==undefined) cnt[j.status]++; });
-  ['critical','hot','open','stable'].forEach(k => {
-    document.getElementById('lc-'+k).textContent = cnt[k];
-  });
+  const studios = new Set(), countries = new Set();
+  const cnt = {critical:0, hot:0, open:0, stable:0};
+  for (const j of filtered) {
+    studios.add(j.s);
+    countries.add(j.co);
+    cnt[j.status]++;
+  }
+  elHudJobs.textContent      = filtered.length;
+  elHudStudios.textContent   = studios.size;
+  elHudCountries.textContent = countries.size;
+  elRailCount.textContent    = filtered.length + ' matches';
+  elLc.critical.textContent  = cnt.critical;
+  elLc.hot.textContent       = cnt.hot;
+  elLc.open.textContent      = cnt.open;
+  elLc.stable.textContent    = cnt.stable;
 }
 
 // ── Drawer ────────────────────────────────────────────────────────────────
@@ -1030,9 +1299,10 @@ function openDrawer(jobId) {
   map.closePopup();
   const j = JOBS.find(x=>x.id===jobId);
   if (!j) return;
+  const prevId = selectedJob?.id;
   selectedJob = j;
 
-  const disc = DISCS.find(d=>d.id===j.disc);
+  const disc = DISC_MAP[j.disc];
   const sc = STATUS_COLOR[j.status];
 
   document.getElementById('drawer-eye').innerHTML = `
@@ -1045,12 +1315,12 @@ function openDrawer(jobId) {
   document.getElementById('drawer-studio').textContent = j.s;
   document.getElementById('drawer-city').innerHTML = `
     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-11a7 7 0 1 1 14 0c0 6.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-    ${[j.c,j.co].filter(Boolean).join(', ')}`;
+    ${esc([j.c,j.co].filter(Boolean).join(', '))}`;
 
   const relJobs = filtered.filter(x=>x.s===j.s);
   document.getElementById('drawer-tags').innerHTML = `
     <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
-    <span class="jtag">${j.l}</span>
+    <span class="jtag">${esc(j.l)}</span>
     <span class="jtag">${j.remote}</span>`;
 
   document.getElementById('dm-posted').textContent = j.d + ', 2026';
@@ -1076,6 +1346,9 @@ function openDrawer(jobId) {
     switchView('studios');
   };
 
+  updateDrawerSaveState(j);
+  document.getElementById('drawer-save').onclick = () => toggleSaved(j);
+
   const applyBtn = document.getElementById('drawer-apply');
   if (j.u) {
     applyBtn.onclick = () => window.open(j.u, '_blank', 'noopener');
@@ -1088,13 +1361,13 @@ function openDrawer(jobId) {
   }
 
   document.getElementById('drawer-backdrop').classList.remove('hidden');
-  renderFeed(); // refresh selected state
+  updateFeedSelected(prevId, j.id);
 }
 
 function closeDrawer() {
   document.getElementById('drawer-backdrop').classList.add('hidden');
+  updateFeedSelected(selectedJob?.id, null);
   selectedJob = null;
-  renderFeed();
 }
 
 document.getElementById('brand-home').addEventListener('click', e => {
@@ -1129,14 +1402,8 @@ function applyFilters() {
       if (fRemote === 'On-site' && !['On-Site','All options'].includes(j.w)) return false;
     }
     if (fRegion && j.r !== fRegion) return false;
-    if (fSofts.length) {
-      const hay = `${j.t} ${j.sw||''} ${j.n}`.toLowerCase();
-      if (!fSofts.some(sw => hay.includes(sw.toLowerCase()))) return false;
-    }
-    if (fQuery) {
-      const q = fQuery.toLowerCase();
-      if (!`${j.t} ${j.s} ${j.c} ${j.co}`.toLowerCase().includes(q)) return false;
-    }
+    if (fSofts.length && !fSofts.some(sw => j._hay.includes(sw))) return false;
+    if (fQuery && !j._search.includes(fQuery.toLowerCase())) return false;
     return true;
   });
   updateHUD();
@@ -1171,7 +1438,7 @@ DISCS.forEach(d => {
 // ── Software chips ────────────────────────────────────────────────────────
 document.querySelectorAll('.soft-chip').forEach(btn => {
   btn.onclick = () => {
-    const sw = btn.textContent.trim();
+    const sw = btn.textContent.trim().toLowerCase();
     if (fSofts.includes(sw)) {
       fSofts = fSofts.filter(x => x !== sw);
       btn.classList.remove('on');
@@ -1208,10 +1475,12 @@ function updateSearchClear() {
   searchKbd.style.display = hasVal ? 'none' : '';
 }
 
+let searchTimer = 0;
 searchEl.addEventListener('input', e => {
   fQuery = e.target.value.trim();
-  applyFilters();
   updateSearchClear();
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(applyFilters, 150);
 });
 
 clearBtn.addEventListener('click', () => {
@@ -1231,6 +1500,36 @@ function updateTimecode() {
 updateTimecode();
 setInterval(updateTimecode, 1000);
 
+// ── Signal (ping) ─────────────────────────────────────────────────────────
+function pingToSig(ms) {
+  // 0ms→100%, 100ms→93%, 300ms→80%, 600ms→65%, 1200ms→42%, 3000ms→0%
+  return Math.max(0, Math.round(100 - Math.sqrt(ms) * 1.8));
+}
+
+function setSig(val) {
+  const txt = 'SIG ' + val + '%';
+  document.getElementById('sig-hud').textContent = txt;
+  document.getElementById('sig-tc').textContent = txt;
+}
+
+async function updateSig() {
+  try {
+    const img = new Image();
+    const t = Date.now();
+    await new Promise((res, rej) => {
+      const timeout = setTimeout(() => { img.src = ''; rej(new Error('timeout')); }, 4000);
+      img.onload = img.onerror = () => { clearTimeout(timeout); res(); };
+      img.src = 'https://www.gstatic.com/generate_204?t=' + t;
+    });
+    setSig(pingToSig(Date.now() - t));
+  } catch {
+    setSig(0);
+  }
+}
+
+updateSig();
+setInterval(updateSig, 30000);
+
 // ── Helpers ───────────────────────────────────────────────────────────────
 function hexRgba(hex, a) {
   const m=hex.replace('#','');const n=parseInt(m,16);
@@ -1243,19 +1542,45 @@ const listPanel = document.getElementById('panel-list');
 const studPanel = document.getElementById('panel-studios');
 const navLinks  = document.querySelectorAll('.topnav a');
 
+let listSort = {col: null, dir: 1};
+
+function updateListHeaders() {
+  document.querySelectorAll('.list-col-btn').forEach(btn => {
+    const isActive = btn.dataset.col === listSort.col;
+    btn.classList.toggle('active', isActive);
+    btn.querySelector('.list-sort-icon').textContent = isActive ? (listSort.dir === 1 ? '↑' : '↓') : '↕';
+  });
+}
+
+document.querySelectorAll('.list-col-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const col = btn.dataset.col;
+    if (listSort.col === col) listSort.dir *= -1;
+    else { listSort.col = col; listSort.dir = 1; }
+    updateListHeaders();
+    renderListView();
+  });
+});
+
 function renderListView() {
-  const body = document.getElementById('list-body');
-  body.innerHTML = filtered.map(j => {
+  let rows = [...filtered];
+  if (listSort.col) {
+    rows.sort((a, b) => {
+      let av = a[listSort.col] || '', bv = b[listSort.col] || '';
+      if (listSort.col === 'status') { av = STATUS_ORDER[av] ?? 9; bv = STATUS_ORDER[bv] ?? 9; return (av - bv) * listSort.dir; }
+      return av.toString().localeCompare(bv.toString()) * listSort.dir;
+    });
+  }
+  elListBody.innerHTML = rows.map(j => {
     const sc = STATUS_COLOR[j.status];
-    const disc = DISCS.find(d=>d.id===j.disc);
     return `<div class="list-row" onclick="openDrawer('${j.id}')">
       <div>
-        <div class="list-role">${j.t}</div>
+        <div class="list-role">${esc(j.t)}</div>
       </div>
-      <div class="list-studio">${j.s}</div>
-      <div class="list-loc">${[j.c,j.co].filter(Boolean).join(', ')}</div>
-      <div class="list-loc">${j.w||'—'}</div>
-      <div class="list-loc">${j.l||'—'}</div>
+      <div class="list-studio">${esc(j.s)}</div>
+      <div class="list-loc">${esc([j.c,j.co].filter(Boolean).join(', '))}</div>
+      <div class="list-loc">${esc(j.w)||'—'}</div>
+      <div class="list-loc">${esc(j.l)||'—'}</div>
       <div style="display:flex;align-items:center;gap:6px">
         <div class="list-dot" style="background:${sc};box-shadow:0 0 6px ${sc}"></div>
         <span class="list-badge" style="color:${sc};border-color:${sc}20">${j.status}</span>
@@ -1265,7 +1590,6 @@ function renderListView() {
 }
 
 function renderStudiosView() {
-  const body = document.getElementById('studios-body');
   const studioMap = {};
   filtered.forEach(j => {
     if (!studioMap[j.s]) studioMap[j.s] = { name:j.s, locs:new Set(), roles:[], jobs:[] };
@@ -1274,18 +1598,18 @@ function renderStudiosView() {
     studioMap[j.s].jobs.push(j);
   });
   const studios = Object.values(studioMap).sort((a,b) => b.jobs.length - a.jobs.length);
-  body.innerHTML = studios.map(st => {
+  elStudiosBody.innerHTML = studios.map(st => {
     const topRoles = [...new Set(st.roles)].slice(0,4);
     const locs = [...st.locs].slice(0,2).join(' · ');
     const topStatus = st.jobs.reduce((best,j) => STATUS_PRIORITY[j.status]>STATUS_PRIORITY[best.status]?j:best, st.jobs[0]).status;
     const sc = STATUS_COLOR[topStatus];
-    return `<div class="studio-card" onclick="document.getElementById('search').value='${st.name.replace(/'/g,"\\'")}';fQuery='${st.name.replace(/'/g,"\\'")}';updateSearchClear();applyFilters();switchView('map')">
+    return `<div class="studio-card" data-studio="${esc(st.name)}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div class="sc-name">${st.name}</div>
+        <div class="sc-name">${esc(st.name)}</div>
         <div class="list-dot" style="background:${sc};box-shadow:0 0 8px ${sc};flex:none;margin-top:4px"></div>
       </div>
-      <div class="sc-loc">${locs||'—'}</div>
-      <div class="sc-roles">${topRoles.map(r=>`<span class="sc-role-chip">${r}</span>`).join('')}${st.roles.length>4?`<span class="sc-role-chip">+${st.roles.length-4}</span>`:''}</div>
+      <div class="sc-loc">${esc(locs)||'—'}</div>
+      <div class="sc-roles">${topRoles.map(r=>`<span class="sc-role-chip">${esc(r)}</span>`).join('')}${st.roles.length>4?`<span class="sc-role-chip">+${st.roles.length-4}</span>`:''}</div>
       <div class="sc-footer">
         <div>
           <div class="sc-count">${st.jobs.length}</div>
@@ -1311,6 +1635,183 @@ function switchView(name) {
 
 navLinks.forEach(a => {
   a.addEventListener('click', () => switchView(a.textContent.toLowerCase()));
+});
+
+// ── Theme toggle ──────────────────────────────────────────────────────────
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const goingLight = !document.body.classList.contains('light');
+
+  const applyTheme = () => {
+    document.body.classList.toggle('light');
+    document.getElementById('theme-icon-dark').style.display  = goingLight ? 'none' : '';
+    document.getElementById('theme-icon-light').style.display = goingLight ? '' : 'none';
+    // Map has its own view-transition group so this won't block the root snapshot
+    if (goingLight) { map.removeLayer(tileDark);  tileLight.addTo(map); }
+    else             { map.removeLayer(tileLight); tileDark.addTo(map);  }
+  };
+
+  if (!document.startViewTransition) { applyTheme(); return; }
+
+  document.startViewTransition(applyTheme);
+});
+
+// ── Saved jobs & Notifications ────────────────────────────────────────────
+const STORAGE_SAVED = 'vfxmap_saved_v1';
+const STORAGE_SEEN  = 'vfxmap_seen_v1';
+
+function jobKey(j) { return j.s + '\x00' + j.t; }
+
+let savedKeys = new Set(JSON.parse(localStorage.getItem(STORAGE_SAVED) || '[]'));
+let seenKeys  = new Set(JSON.parse(localStorage.getItem(STORAGE_SEEN)  || '[]'));
+let newJobKeys = new Set();
+
+function persistSaved() { localStorage.setItem(STORAGE_SAVED, JSON.stringify([...savedKeys])); }
+function persistSeen()  { localStorage.setItem(STORAGE_SEEN,  JSON.stringify([...seenKeys]));  }
+
+function updateNotifBadge() {
+  const n = newJobKeys.size;
+  const el = document.getElementById('notif-badge');
+  el.textContent = n > 99 ? '99+' : n;
+  el.style.display = n ? '' : 'none';
+}
+
+function updateSaveBadge() {
+  const n = savedKeys.size;
+  const el = document.getElementById('save-badge');
+  el.textContent = n > 99 ? '99+' : n;
+  el.style.display = n ? '' : 'none';
+}
+
+function updateDrawerSaveState(j) {
+  const saved = j && savedKeys.has(jobKey(j));
+  document.getElementById('drawer-save-label').textContent = saved ? 'Saved' : 'Save';
+  document.getElementById('drawer-save-icon-off').style.display = saved ? 'none' : '';
+  document.getElementById('drawer-save-icon-on').style.display  = saved ? '' : 'none';
+  document.getElementById('drawer-save').style.color = saved ? 'var(--amber)' : '';
+}
+
+function toggleSaved(j) {
+  const k = jobKey(j);
+  if (savedKeys.has(k)) { savedKeys.delete(k); } else { savedKeys.add(k); }
+  persistSaved();
+  updateSaveBadge();
+  updateDrawerSaveState(j);
+  if (!document.getElementById('saved-panel').classList.contains('hidden')) {
+    renderSavedPanel();
+  }
+}
+
+function computeNewJobs() {
+  newJobKeys = new Set(JOBS.map(j => jobKey(j)).filter(k => !seenKeys.has(k)));
+  updateNotifBadge();
+}
+
+function markAllSeen() {
+  JOBS.forEach(j => seenKeys.add(jobKey(j)));
+  persistSeen();
+  newJobKeys.clear();
+  updateNotifBadge();
+}
+
+function renderJobMiniCard(j, removable) {
+  const disc = DISC_MAP[j.disc];
+  const sc = STATUS_COLOR[j.status];
+  const rmBtn = removable
+    ? `<button class="sp-rm" onclick="event.stopPropagation();toggleSaved(JOBS.find(x=>x.id==='${j.id}'))" title="Remove">
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+       </button>`
+    : '';
+  return `<div class="sp-saved-row" onclick="openDrawer('${j.id}')">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span class="eye-dot" style="background:${sc};box-shadow:0 0 6px ${sc};flex:none"></span>
+        <span style="font-family:var(--font-m);font-size:9px;color:${sc};text-transform:uppercase;letter-spacing:.12em">${j.status}</span>
+        <span style="font-family:var(--font-m);font-size:9px;color:var(--fg-4)">· ${j.postedH}h ago</span>
+      </div>
+      <div style="font-family:var(--font-s);font-size:13px;font-weight:600;color:var(--fg-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(j.t)}</div>
+      <div style="font-family:var(--font-m);font-size:10px;color:var(--fg-3);letter-spacing:.10em;text-transform:uppercase;margin-top:2px">${esc(j.s)} · ${esc(j.c||j.co)}</div>
+    </div>
+    ${rmBtn}
+  </div>`;
+}
+
+function renderNotifPanel() {
+  const body = document.getElementById('notif-body');
+  const newJobs = JOBS.filter(j => newJobKeys.has(jobKey(j)))
+    .sort((a,b) => (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
+  document.getElementById('notif-count').textContent = newJobs.length ? newJobs.length + ' new' : '';
+  if (!newJobs.length) {
+    body.innerHTML = '<div class="sp-empty">No new jobs since last visit</div>';
+  } else {
+    body.innerHTML = newJobs.map(j => renderJobMiniCard(j, false)).join('');
+  }
+}
+
+function renderSavedPanel() {
+  const body = document.getElementById('saved-body');
+  const savedJobs = JOBS.filter(j => savedKeys.has(jobKey(j)));
+  document.getElementById('saved-count').textContent = savedJobs.length ? savedJobs.length + ' saved' : '';
+  if (!savedJobs.length) {
+    body.innerHTML = '<div class="sp-empty">No saved jobs yet<br><span style="font-size:10px;opacity:.6">Open a job and click Save</span></div>';
+  } else {
+    body.innerHTML = savedJobs.map(j => renderJobMiniCard(j, true)).join('');
+  }
+}
+
+function openNotifPanel() {
+  document.getElementById('saved-panel').classList.add('hidden');
+  const panel = document.getElementById('notif-panel');
+  if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+  renderNotifPanel();
+  panel.classList.remove('hidden');
+  setTimeout(markAllSeen, 2000);
+}
+
+function openSavedPanel() {
+  document.getElementById('notif-panel').classList.add('hidden');
+  const panel = document.getElementById('saved-panel');
+  if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+  renderSavedPanel();
+  panel.classList.remove('hidden');
+}
+
+document.getElementById('notif-btn').addEventListener('click', e => { e.stopPropagation(); openNotifPanel(); });
+document.getElementById('saved-btn').addEventListener('click', e => { e.stopPropagation(); openSavedPanel(); });
+document.getElementById('notif-close').addEventListener('click', () => document.getElementById('notif-panel').classList.add('hidden'));
+document.getElementById('saved-close').addEventListener('click', () => document.getElementById('saved-panel').classList.add('hidden'));
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#notif-panel') && !e.target.closest('#notif-btn'))
+    document.getElementById('notif-panel').classList.add('hidden');
+  if (!e.target.closest('#saved-panel') && !e.target.closest('#saved-btn'))
+    document.getElementById('saved-panel').classList.add('hidden');
+});
+
+// ── DOM cache ─────────────────────────────────────────────────────────────
+const elFeedList     = document.getElementById('feed-list');
+const elFeedCount    = document.getElementById('feed-count');
+const elListBody     = document.getElementById('list-body');
+const elHudJobs      = document.getElementById('hud-jobs');
+const elHudStudios   = document.getElementById('hud-studios');
+const elHudCountries = document.getElementById('hud-countries');
+const elRailCount    = document.getElementById('rail-count');
+const elStudiosBody  = document.getElementById('studios-body');
+const elLc = {
+  critical: document.getElementById('lc-critical'),
+  hot:      document.getElementById('lc-hot'),
+  open:     document.getElementById('lc-open'),
+  stable:   document.getElementById('lc-stable'),
+};
+
+studPanel.addEventListener('click', e => {
+  const card = e.target.closest('.studio-card');
+  if (!card) return;
+  const name = card.dataset.studio;
+  fQuery = name;
+  document.getElementById('search').value = name;
+  updateSearchClear();
+  applyFilters();
+  switchView('map');
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────
