@@ -161,7 +161,7 @@ async function initData(attempt) {
 
 // ── App state ─────────────────────────────────────────────────────────────
 let JOBS = [];
-let fDiscs = [], fSofts = [], fSoftRegexes = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fQuery = '';
+let fDiscs = [], fSofts = [], fSoftRegexes = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fLevel = '', fQuery = '';
 let selectedJob = null, filtered = [], lastMapKey = '';
 
 // ── DOM cache ─────────────────────────────────────────────────────────────
@@ -382,6 +382,11 @@ function applyFilters() {
     if (fStatus !== 'all' && j.status !== fStatus) return false;
     if (fRemote !== 'Any' && j.remote !== fRemote) return false;
     if (fRegion && j.r !== fRegion) return false;
+    if (fLevel) {
+      const lv = j.l.toLowerCase();
+      const lvMatch = fLevel === 'sup' ? (lv.includes('sup') || lv.includes('manager')) : lv.includes(fLevel);
+      if (!lvMatch) return false;
+    }
     if (fSoftRegexes.length && !fSoftRegexes.some(re => re.test(j._hay))) return false;
     if (fQuery && !j._search.includes(fQuery.toLowerCase())) return false;
     return true;
@@ -441,6 +446,7 @@ function wireSegmented(id, onChange) {
 }
 wireSegmented('status-seg', v => { fStatus = v; applyFilters(); });
 wireSegmented('remote-seg', v => { fRemote = v; applyFilters(); });
+wireSegmented('level-seg',  v => { fLevel  = v; applyFilters(); });
 wireSegmented('region-seg', v => { fRegion = v; applyFilters(); });
 
 // ── Search ────────────────────────────────────────────────────────────────
@@ -612,7 +618,7 @@ studPanel.addEventListener('click', e => {
 // ── Brand home ────────────────────────────────────────────────────────────
 document.getElementById('brand-home').addEventListener('click', e => {
   e.preventDefault();
-  fQuery = ''; fDiscs = []; fSofts = []; fSoftRegexes = []; fStatus = 'all'; fRemote = 'Any'; fRegion = '';
+  fQuery = ''; fDiscs = []; fSofts = []; fSoftRegexes = []; fStatus = 'all'; fRemote = 'Any'; fRegion = ''; fLevel = '';
   document.getElementById('search').value = '';
   updateSearchClear();
   document.querySelectorAll('.disc-chip.on').forEach(b => {
@@ -621,6 +627,7 @@ document.getElementById('brand-home').addEventListener('click', e => {
   document.querySelectorAll('.soft-chip.on').forEach(b => b.classList.remove('on'));
   document.getElementById('status-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
   document.getElementById('remote-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
+  document.getElementById('level-seg').querySelectorAll('.seg-item').forEach((b,i)  => b.classList.toggle('on', i===0));
   document.getElementById('region-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
   closeMobileSheet();
   applyFilters(); switchView('map');
