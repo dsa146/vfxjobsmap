@@ -35,8 +35,7 @@ function parseSheetDate(raw) {
   return new Date(new Date().getFullYear(), mo, day);
 }
 
-function getStatus(d) {
-  const date = parseSheetDate(d);
+function getStatus(date) {
   if (!date) return 'ongoing';
   const diffDays = (Date.now() - date.getTime()) / 86400000;
   if (diffDays < 1)  return 'new';
@@ -45,8 +44,7 @@ function getStatus(d) {
   return 'ongoing';
 }
 
-function getPostedH(d) {
-  const date = parseSheetDate(d);
+function getPostedH(date) {
   if (!date) return 500;
   return Math.max(1, Math.round((Date.now() - date.getTime()) / 3600000));
 }
@@ -82,6 +80,7 @@ function getCoords(j) {
   return CC[j.c + '|' + j.co] || CC[j.c] || CO_LL[j.co] || null;
 }
 
+
 // ── Sheet fetch ───────────────────────────────────────────────────────────
 function parseGvizRows(rows) {
   return rows.map(row => {
@@ -95,11 +94,13 @@ function parseGvizRows(rows) {
              l:get(COL.level), w:get(COL.workMode), d:dateStr,
              r:get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes) };
   }).filter(Boolean).map((j, i) => {
+    const date = parseSheetDate(j.d);
     const base = {
       ...j,
       id: 'JOB-' + String(i+1).padStart(4,'0'),
-      disc: getDisc(j.t), status: getStatus(j.d), postedH: getPostedH(j.d),
+      disc: getDisc(j.t), status: getStatus(date), postedH: getPostedH(date),
       remote: getRemote(j.w), ll: getCoords(j),
+      loc: j.c ? (j.co ? j.c + ', ' + j.co : j.c) : (j.co || ''),
     };
     base._hay    = `${base.t} ${base.sw||''} ${base.n}`.toLowerCase();
     base._search = `${base.t} ${base.s} ${base.c} ${base.co}`.toLowerCase();
@@ -175,12 +176,41 @@ const elHudStudios   = document.getElementById('hud-studios');
 const elHudCountries = document.getElementById('hud-countries');
 const elRailCount    = document.getElementById('rail-count');
 const elStudiosBody  = document.getElementById('studios-body');
+const elTcTime       = document.getElementById('tc-time');
 const elLc = {
   new:     document.getElementById('lc-new'),
   recent:  document.getElementById('lc-recent'),
   active:  document.getElementById('lc-active'),
   ongoing: document.getElementById('lc-ongoing'),
 };
+const elSig = {
+  hud: document.getElementById('sig-hud'),
+  tc:  document.getElementById('sig-tc'),
+};
+const elDr = {
+  backdrop:    document.getElementById('drawer-backdrop'),
+  eye:         document.getElementById('drawer-eye'),
+  title:       document.getElementById('drawer-title'),
+  studio:      document.getElementById('drawer-studio'),
+  city:        document.getElementById('drawer-city'),
+  tags:        document.getElementById('drawer-tags'),
+  posted:      document.getElementById('dm-posted'),
+  mode:        document.getElementById('dm-mode'),
+  level:       document.getElementById('dm-level'),
+  sname:       document.getElementById('dm-sname'),
+  smeta:       document.getElementById('dm-smeta'),
+  notesSection:document.getElementById('drawer-notes-section'),
+  notes:       document.getElementById('drawer-notes'),
+  viewStudio:  document.getElementById('drawer-view-studio'),
+  save:        document.getElementById('drawer-save'),
+  saveLabel:   document.getElementById('drawer-save-label'),
+  saveIconOff: document.getElementById('drawer-save-icon-off'),
+  saveIconOn:  document.getElementById('drawer-save-icon-on'),
+  share:       document.getElementById('drawer-share'),
+  shareLabel:  document.getElementById('drawer-share-label'),
+  apply:       document.getElementById('drawer-apply'),
+};
+const elListColBtns = document.querySelectorAll('.list-col-btn');
 
 // ── Map ───────────────────────────────────────────────────────────────────
 const map = L.map('map', {
@@ -216,7 +246,7 @@ function updateMap() {
   filtered.forEach(j => {
     if (!j.ll) return;
     const k = j.ll[0].toFixed(2)+','+j.ll[1].toFixed(2);
-    if (!groups[k]) groups[k] = {ll:j.ll, jobs:[], label:j.c||j.co};
+    if (!groups[k]) groups[k] = {ll:j.ll, jobs:[], label:j.loc};
     groups[k].jobs.push(j);
   });
   Object.values(groups).forEach(g => {
@@ -257,7 +287,7 @@ function makeCardHTML(j) {
       <span class="eye-id">${j.id}</span>
     </div>
     <div class="jcard-title">${esc(j.t)}</div>
-    <div class="jcard-studio">${esc(j.s)} · ${esc(j.c||j.co)}</div>
+    <div class="jcard-studio">${esc(j.s)} · ${esc(j.loc)}</div>
     <div class="jcard-tags">
       <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
       <span class="jtag">${esc(j.l)}</span>
@@ -333,81 +363,79 @@ function openDrawer(jobId) {
 
   const disc = DISC_MAP[j.disc], sc = STATUS_COLOR[j.status];
 
-  document.getElementById('drawer-eye').innerHTML = `
+  elDr.eye.innerHTML = `
     <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
     <span style="color:${sc}">${j.status.toUpperCase()}</span>
     <span class="eye-sep">·</span>
     <span>${j.id} · POSTED ${fmtAge(j.postedH).toUpperCase()}</span>`;
 
-  document.getElementById('drawer-title').textContent  = j.t;
-  document.getElementById('drawer-studio').textContent = j.s;
-  document.getElementById('drawer-city').innerHTML = `
+  elDr.title.textContent  = j.t;
+  elDr.studio.textContent = j.s;
+  elDr.city.innerHTML = `
     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-11a7 7 0 1 1 14 0c0 6.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-    ${esc([j.c,j.co].filter(Boolean).join(', '))}`;
+    ${esc(j.loc)}`;
 
   const relJobs = filtered.filter(x => x.s === j.s);
-  document.getElementById('drawer-tags').innerHTML = `
+  elDr.tags.innerHTML = `
     <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
     <span class="jtag">${esc(j.l)}</span>
     <span class="jtag">${j.remote}</span>`;
 
-  document.getElementById('dm-posted').textContent = j.d + ', ' + new Date().getFullYear();
-  document.getElementById('dm-mode').textContent   = j.remote;
-  document.getElementById('dm-level').textContent  = j.l;
-  document.getElementById('dm-sname').textContent  = j.s;
-  document.getElementById('dm-smeta').innerHTML    = `${relJobs.length} open roles · status <span style="color:${sc}">${j.status}</span>`;
+  elDr.posted.textContent = j.d + ', ' + new Date().getFullYear();
+  elDr.mode.textContent   = j.remote;
+  elDr.level.textContent  = j.l;
+  elDr.sname.textContent  = j.s;
+  elDr.smeta.innerHTML    = `${relJobs.length} open roles · status <span style="color:${sc}">${j.status}</span>`;
 
-  const notesSection = document.getElementById('drawer-notes-section');
-  if (j.n) { document.getElementById('drawer-notes').textContent = j.n; notesSection.style.display = ''; }
-  else      { notesSection.style.display = 'none'; }
+  if (j.n) { elDr.notes.textContent = j.n; elDr.notesSection.style.display = ''; }
+  else      { elDr.notesSection.style.display = 'none'; }
 
-  document.getElementById('drawer-view-studio').onclick = () => {
+  elDr.viewStudio.onclick = () => {
     closeDrawer();
     fQuery = j.s;
-    document.getElementById('search').value = j.s;
+    searchEl.value = j.s;
     updateSearchClear();
     applyFilters();
     switchView('studios');
   };
 
   updateDrawerSaveState(j);
-  document.getElementById('drawer-save').onclick  = () => toggleSaved(j);
-  document.getElementById('drawer-share').onclick = () => {
+  elDr.save.onclick  = () => toggleSaved(j);
+  elDr.share.onclick = () => {
     const url = location.origin + location.pathname + '?job=' + j.id;
     navigator.clipboard.writeText(url).then(() => {
-      const lbl = document.getElementById('drawer-share-label');
-      lbl.textContent = 'Copied!';
-      setTimeout(() => { lbl.textContent = 'Share'; }, 2000);
+      elDr.shareLabel.textContent = 'Copied!';
+      setTimeout(() => { elDr.shareLabel.textContent = 'Share'; }, 2000);
     });
   };
 
-  const applyBtn = document.getElementById('drawer-apply');
   if (j.u) {
-    applyBtn.onclick = () => window.open(j.u, '_blank', 'noopener');
-    applyBtn.style.opacity = '1'; applyBtn.style.pointerEvents = '';
+    elDr.apply.onclick = () => window.open(j.u, '_blank', 'noopener');
+    elDr.apply.style.opacity = '1'; elDr.apply.style.pointerEvents = '';
   } else {
-    applyBtn.onclick = null;
-    applyBtn.style.opacity = '0.4'; applyBtn.style.pointerEvents = 'none';
+    elDr.apply.onclick = null;
+    elDr.apply.style.opacity = '0.4'; elDr.apply.style.pointerEvents = 'none';
   }
 
-  document.getElementById('drawer-backdrop').classList.remove('hidden');
+  elDr.backdrop.classList.remove('hidden');
   updateFeedSelected(prevId, j.id);
   history.replaceState(null, '', '?job=' + j.id);
 }
 
 function closeDrawer() {
-  document.getElementById('drawer-backdrop').classList.add('hidden');
+  elDr.backdrop.classList.add('hidden');
   updateFeedSelected(selectedJob?.id, null);
   selectedJob = null;
   history.replaceState(null, '', location.pathname);
 }
 
-document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
+elDr.backdrop.addEventListener('click', closeDrawer);
 document.getElementById('drawer-close').addEventListener('click', closeDrawer);
 document.getElementById('drawer').addEventListener('click', e => e.stopPropagation());
 
 // ── Filters ───────────────────────────────────────────────────────────────
 function applyFilters() {
+  const fQueryLc = fQuery ? fQuery.toLowerCase() : '';
   filtered = JOBS.filter(j => {
     if (fDiscs.length && !fDiscs.includes(j.disc)) return false;
     if (fStatus !== 'all' && j.status !== fStatus) return false;
@@ -419,7 +447,7 @@ function applyFilters() {
       if (!lvMatch) return false;
     }
     if (fSoftRegexes.length && !fSoftRegexes.some(re => re.test(j._hay))) return false;
-    if (fQuery && !j._search.includes(fQuery.toLowerCase())) return false;
+    if (fQueryLc && !j._search.includes(fQueryLc)) return false;
     return true;
   });
   updateHUD(); updateMap(); renderFeed();
@@ -467,9 +495,10 @@ document.querySelectorAll('.soft-chip').forEach(btn => {
 
 // ── Segmented controls ────────────────────────────────────────────────────
 function wireSegmented(id, onChange) {
-  document.getElementById(id).querySelectorAll('.seg-item').forEach(btn => {
+  const btns = document.getElementById(id).querySelectorAll('.seg-item');
+  btns.forEach(btn => {
     btn.onclick = () => {
-      document.getElementById(id).querySelectorAll('.seg-item').forEach(b => b.classList.remove('on'));
+      btns.forEach(b => b.classList.remove('on'));
       btn.classList.add('on');
       onChange(btn.dataset.v);
     };
@@ -515,7 +544,7 @@ clearBtn.addEventListener('click', () => {
 // ── Timecode ──────────────────────────────────────────────────────────────
 function updateTimecode() {
   const n = new Date(), pad = x => String(x).padStart(2,'0');
-  document.getElementById('tc-time').textContent = `${pad(n.getUTCHours())}:${pad(n.getUTCMinutes())}:${pad(n.getUTCSeconds())} UTC`;
+  elTcTime.textContent = `${pad(n.getUTCHours())}:${pad(n.getUTCMinutes())}:${pad(n.getUTCSeconds())} UTC`;
 }
 updateTimecode();
 setInterval(updateTimecode, 1000);
@@ -524,8 +553,8 @@ setInterval(updateTimecode, 1000);
 function pingToSig(ms) { return Math.max(0, Math.round(100 - Math.sqrt(ms) * 1.8)); }
 function setSig(val) {
   const txt = 'SIG ' + val + '%';
-  document.getElementById('sig-hud').textContent = txt;
-  document.getElementById('sig-tc').textContent  = txt;
+  elSig.hud.textContent = txt;
+  elSig.tc.textContent  = txt;
 }
 async function updateSig() {
   try {
@@ -565,13 +594,13 @@ navLinks.forEach(a => a.addEventListener('click', () => switchView(a.textContent
 let listSort = {col: null, dir: 1};
 
 function updateListHeaders() {
-  document.querySelectorAll('.list-col-btn').forEach(btn => {
+  elListColBtns.forEach(btn => {
     const isActive = btn.dataset.col === listSort.col;
     btn.classList.toggle('active', isActive);
     btn.querySelector('.list-sort-icon').textContent = isActive ? (listSort.dir === 1 ? '↑' : '↓') : '↕';
   });
 }
-document.querySelectorAll('.list-col-btn').forEach(btn => {
+elListColBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const col = btn.dataset.col;
     if (listSort.col === col) listSort.dir *= -1;
@@ -595,7 +624,7 @@ function renderListView() {
     return `<div class="list-row" onclick="openDrawer('${j.id}')">
       <div><div class="list-role">${esc(j.t)}</div></div>
       <div class="list-studio">${esc(j.s)}</div>
-      <div class="list-loc">${esc([j.c,j.co].filter(Boolean).join(', '))}</div>
+      <div class="list-loc">${esc(j.loc)}</div>
       <div class="list-loc">${esc(j.w)||'—'}</div>
       <div class="list-loc">${esc(j.l)||'—'}</div>
       <div style="display:flex;align-items:center;gap:6px">
@@ -611,7 +640,7 @@ function renderStudiosView() {
   const studioMap = {};
   filtered.forEach(j => {
     if (!studioMap[j.s]) studioMap[j.s] = {name:j.s, locs:new Set(), roles:[], jobs:[]};
-    studioMap[j.s].locs.add([j.c,j.co].filter(Boolean).join(', '));
+    studioMap[j.s].locs.add(j.loc);
     studioMap[j.s].roles.push(j.t);
     studioMap[j.s].jobs.push(j);
   });
@@ -721,10 +750,10 @@ function updateSaveBadge() {
 }
 function updateDrawerSaveState(j) {
   const saved = j && savedKeys.has(jobKey(j));
-  document.getElementById('drawer-save-label').textContent  = saved ? 'Saved' : 'Save';
-  document.getElementById('drawer-save-icon-off').style.display = saved ? 'none' : '';
-  document.getElementById('drawer-save-icon-on').style.display  = saved ? '' : 'none';
-  document.getElementById('drawer-save').style.color = saved ? 'var(--amber)' : '';
+  elDr.saveLabel.textContent      = saved ? 'Saved' : 'Save';
+  elDr.saveIconOff.style.display  = saved ? 'none' : '';
+  elDr.saveIconOn.style.display   = saved ? '' : 'none';
+  elDr.save.style.color           = saved ? 'var(--amber)' : '';
 }
 function toggleSaved(j) {
   const k = jobKey(j);
