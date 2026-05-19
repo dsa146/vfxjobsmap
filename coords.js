@@ -563,6 +563,7 @@ const CC = {
 
   // ── Disambiguated city|country keys ───────────────────────────────────
   // These override the plain city lookup for ambiguous names.
+  "St. Petersburg|United States":[27.7676,-82.6403],
   "Cambridge|United States":[42.3736,-71.1097],
   "Cambridge|Canada":[43.3616,-80.3144],
   "Brisbane|United States":[37.6857,-122.3981],
