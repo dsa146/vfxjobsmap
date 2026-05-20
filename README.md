@@ -51,7 +51,7 @@ No build step. Just open `index.html` in a browser:
 
 ```
 # Clone
-git clone https://github.com/your-username/vfxjobsmap.git
+git clone https://github.com/dsa146/vfxjobsmap.git
 cd vfxjobsmap
 
 # Open
