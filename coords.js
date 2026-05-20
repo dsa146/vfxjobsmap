@@ -446,14 +446,14 @@ const CC = {
   "Sydney":[-33.8688,151.2093],"Melbourne":[-37.8136,144.9631],
   "Brisbane":[-27.4698,153.0251],"Perth":[-31.9505,115.8605],
   "Adelaide":[-34.9285,138.6007],"Gold Coast":[-28.0167,153.4000],
-  "Canberra":[-35.2809,149.1300],"Newcastle":[-32.9283,151.7817],
+  "Canberra":[-35.2809,149.1300],
   "Wollongong":[-34.4278,150.8931],"Geelong":[-38.1499,144.3617],
   "Hobart":[-42.8821,147.3272],"Cairns":[-16.9186,145.7781],
   "Darwin":[-12.4634,130.8456],"Townsville":[-19.2590,146.8169],
 
   // ── New Zealand ───────────────────────────────────────────────────────
   "Auckland":[-36.8509,174.7645],"Wellington":[-41.2865,174.7762],
-  "Christchurch":[-43.5321,172.6362],"Hamilton":[-37.7870,175.2793],
+  "Christchurch":[-43.5321,172.6362],
   "Dunedin":[-45.8788,170.5028],"Tauranga":[-37.6878,176.1651],
 
   // ── Latin America ─────────────────────────────────────────────────────
@@ -592,6 +592,9 @@ const CC = {
   "Victoria|United States":[28.8053,-97.0036],
   "Perth|Canada":[44.9001,-76.2460],
   "Newcastle|Australia":[-32.9283,151.7817],
+  "Newcastle|United Kingdom":[54.9783,-1.6178],
+  "Newcastle|England":[54.9783,-1.6178],
+  "Hamilton|Canada":[43.2557,-79.8711],
   "Springfield|United States":[37.2090,-93.2923],
   "Wellington|United States":[26.6590,-80.2420],
   "Santiago|Philippines":[16.6831,121.5494],
