@@ -450,6 +450,7 @@ function applyFilters() {
     if (fQueryLc && !j._search.includes(fQueryLc)) return false;
     return true;
   });
+  listDirty = true; studiosDirty = true;
   updateHUD(); updateMap(); renderFeed();
   if (currentView === 'list')    renderListView();
   if (currentView === 'studios') renderStudiosView();
@@ -587,8 +588,8 @@ function switchView(name) {
   mapPanel.style.display  = (name === 'map' || mapWithPanel) ? '' : 'none';
   listPanel.style.display = name === 'list'    ? 'flex' : 'none';
   studPanel.style.display = name === 'studios' ? 'flex' : 'none';
-  if (name === 'list')    renderListView();
-  if (name === 'studios') renderStudiosView();
+  if (name === 'list')    requestAnimationFrame(renderListView);
+  if (name === 'studios') requestAnimationFrame(renderStudiosView);
   if (name === 'map' || mapWithPanel) map.invalidateSize();
   syncMobileNav(name);
 }
@@ -599,6 +600,7 @@ window.addEventListener('orientationchange', () => {
 navLinks.forEach(a => a.addEventListener('click', () => switchView(a.textContent.toLowerCase())));
 
 // ── List view ─────────────────────────────────────────────────────────────
+let listDirty = true, studiosDirty = true;
 let listSort = {col: null, dir: 1};
 
 function updateListHeaders() {
@@ -614,11 +616,13 @@ elListColBtns.forEach(btn => {
     if (listSort.col === col) listSort.dir *= -1;
     else { listSort.col = col; listSort.dir = 1; }
     updateListHeaders();
-    renderListView();
+    listDirty = true; renderListView();
   });
 });
 
 function renderListView() {
+  if (!listDirty) return;
+  listDirty = false;
   let rows = [...filtered];
   if (listSort.col) {
     rows.sort((a,b) => {
@@ -645,6 +649,8 @@ function renderListView() {
 
 // ── Studios view ──────────────────────────────────────────────────────────
 function renderStudiosView() {
+  if (!studiosDirty) return;
+  studiosDirty = false;
   const studioMap = {};
   filtered.forEach(j => {
     if (!studioMap[j.s]) studioMap[j.s] = {name:j.s, locs:new Set(), roles:[], jobs:[]};
