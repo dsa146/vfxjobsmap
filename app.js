@@ -577,17 +577,25 @@ const studPanel = document.getElementById('panel-studios');
 const navLinks  = document.querySelectorAll('.topnav a');
 let currentView = 'map';
 
+const mqlLandscape = window.matchMedia('(max-width:768px) and (orientation:landscape)');
+
 function switchView(name) {
   currentView = name;
   navLinks.forEach(a => a.classList.toggle('active', a.textContent.toLowerCase() === name));
-  mapPanel.style.display  = name === 'map'     ? '' : 'none';
+  const landscape = mqlLandscape.matches;
+  const mapWithPanel = landscape && name !== 'list' && name !== 'studios';
+  mapPanel.style.display  = (name === 'map' || mapWithPanel) ? '' : 'none';
   listPanel.style.display = name === 'list'    ? 'flex' : 'none';
   studPanel.style.display = name === 'studios' ? 'flex' : 'none';
   if (name === 'list')    renderListView();
   if (name === 'studios') renderStudiosView();
-  if (name === 'map')     map.invalidateSize();
+  if (name === 'map' || mapWithPanel) map.invalidateSize();
   syncMobileNav(name);
 }
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { switchView(currentView); map.invalidateSize(); }, 300);
+});
 navLinks.forEach(a => a.addEventListener('click', () => switchView(a.textContent.toLowerCase())));
 
 // ── List view ─────────────────────────────────────────────────────────────

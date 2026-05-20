@@ -608,6 +608,9 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   /* Legend — float above mobile nav */
   .legend{bottom:calc(56px + 14px);left:12px}
 
+  /* Zoom control — move to bottom-right, clear of feed sheet and HUD */
+  .leaflet-top.leaflet-left{top:auto!important;bottom:12px!important;left:auto!important;right:12px!important}
+
   /* Timecode — too cramped on mobile */
   .timecode{display:none}
 
@@ -673,4 +676,65 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
 
   /* Kill pulse animations — too GPU-heavy on mobile */
   .pin-pulse{animation:none}
+}
+
+/* ── Landscape mobile: side-panel split view ─────────── */
+@media (max-width:768px) and (orientation:landscape) {
+
+  /* HUD — collapse to a compact horizontal strip at top-left */
+  .hud{
+    display:flex;flex-direction:row;align-items:center;
+    top:8px;left:8px;right:auto;width:auto;min-width:0;
+  }
+  .hud-head{
+    border-bottom:none;border-right:1px solid var(--line-1);
+    padding:5px 10px;background:none;
+  }
+  .hud-sig{display:none}
+  .hud-grid{display:flex;flex-direction:row;padding:5px 12px;gap:16px}
+  .hud-stat{flex-direction:row;align-items:center;gap:5px}
+  .hud-n{font-size:13px}
+  .hud-l{font-size:8px;margin-top:0}
+
+  /* Rail: bottom sheet → slides in from right */
+  .rail{
+    top:56px;left:auto;right:0;bottom:56px;
+    width:45vw;height:auto;
+    transform:translateX(100%);
+    border-radius:0;border-top:none;
+    border-left:1px solid var(--line-2);
+    box-shadow:-20px 0 60px rgba(0,0,0,.5);
+  }
+  .rail.sheet-open{transform:translateX(0)}
+  body.light .rail{box-shadow:-20px 0 60px rgba(0,0,0,.15)}
+
+  /* Feed: bottom sheet → slides in from right */
+  .feed{
+    top:56px;left:auto;right:0;bottom:56px;
+    width:45vw;height:auto;
+    transform:translateX(100%);
+    border-radius:0;border-top:none;
+    border-left:1px solid var(--line-2);
+    box-shadow:-20px 0 60px rgba(0,0,0,.5);
+  }
+  .feed.sheet-open{transform:translateX(0)}
+  body.light .feed{box-shadow:-20px 0 60px rgba(0,0,0,.15)}
+
+  /* List + Studios stay fullscreen in landscape — too content-heavy for a narrow panel */
+
+  /* No drag handles — panels slide horizontally */
+  .sheet-handle{display:none}
+
+  /* Legend — collapse to compact horizontal strip at bottom-left */
+  .legend{
+    bottom:8px;left:8px;
+    display:flex;flex-direction:row;align-items:center;gap:12px;
+    padding:5px 10px;min-width:0;
+  }
+  .legend-head{display:none}
+  .legend-row{padding:0;gap:5px}
+  .legend-age{display:none}
+  .legend-dot{width:8px;height:8px}
+  .legend-name{font-size:9px}
+  .legend-cnt{font-size:9px}
 }
