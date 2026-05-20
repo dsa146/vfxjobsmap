@@ -1,0 +1,8 @@
+# Claude Code project files
+.claude/
+
+# Skill/tool files
+brand-design-md/
+
+# Dev utilities
+generate-coords.js
