@@ -29,6 +29,37 @@ const DISCS = [
 ];
 const DISC_MAP = Object.fromEntries(DISCS.map(d => [d.id, d]));
 
+// ── Country → Region ──────────────────────────────────────────────────────
+const COUNTRY_REGION = {
+  'United States':'North America','USA':'North America','US':'North America',
+  'Canada':'North America','Mexico':'North America',
+
+  'United Kingdom':'Europe','UK':'Europe','England':'Europe','Scotland':'Europe','Wales':'Europe',
+  'France':'Europe','Germany':'Europe','Spain':'Europe','Italy':'Europe',
+  'Netherlands':'Europe','Belgium':'Europe','Sweden':'Europe','Norway':'Europe',
+  'Denmark':'Europe','Finland':'Europe','Austria':'Europe','Switzerland':'Europe',
+  'Poland':'Europe','Czech Republic':'Europe','Hungary':'Europe','Romania':'Europe',
+  'Portugal':'Europe','Ireland':'Europe','Greece':'Europe','Croatia':'Europe',
+  'Bulgaria':'Europe','Serbia':'Europe','Ukraine':'Europe','Slovakia':'Europe',
+  'Luxembourg':'Europe','Iceland':'Europe','Estonia':'Europe','Latvia':'Europe',
+  'Lithuania':'Europe','Slovenia':'Europe',
+
+  'China':'Asia','Japan':'Asia','South Korea':'Asia','Korea':'Asia',
+  'India':'Asia','Singapore':'Asia','Taiwan':'Asia','Hong Kong':'Asia',
+  'Thailand':'Asia','Vietnam':'Asia','Malaysia':'Asia','Indonesia':'Asia',
+  'Philippines':'Asia','Pakistan':'Asia','Bangladesh':'Asia',
+
+  'Australia':'Oceania/Australia','New Zealand':'Oceania/Australia',
+
+  'Brazil':'South America','Argentina':'South America','Colombia':'South America',
+  'Chile':'South America','Peru':'South America','Venezuela':'South America',
+  'Uruguay':'South America','Ecuador':'South America',
+
+  'Israel':'Middle East','UAE':'Middle East','United Arab Emirates':'Middle East',
+  'Saudi Arabia':'Middle East','Turkey':'Middle East',
+  'South Africa':'Africa','Nigeria':'Africa','Kenya':'Africa',
+};
+
 // ── Status ────────────────────────────────────────────────────────────────
 const STATUS_ORDER    = {new:0, recent:1, active:2, ongoing:3};
 const STATUS_COLOR    = {new:'#FF3D5A', recent:'#FF7A3D', active:'#F5A524', ongoing:'#2BC4D2'};

@@ -92,7 +92,7 @@ function parseGvizRows(rows) {
     const dateStr = dateRaw ? String(dateRaw).replace(/,?\s*\d{4}$/, '').trim() : '';
     return { s:studio, c:get(COL.city), co:get(COL.country), t:title,
              l:get(COL.level), w:get(COL.workMode), d:dateStr,
-             r:get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes) };
+             r:COUNTRY_REGION[get(COL.country)] || get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes) };
   }).filter(Boolean).map((j, i) => {
     const date = parseSheetDate(j.d);
     const base = {
