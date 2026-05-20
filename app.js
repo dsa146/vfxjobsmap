@@ -577,7 +577,7 @@ const studPanel = document.getElementById('panel-studios');
 const navLinks  = document.querySelectorAll('.topnav a');
 let currentView = 'map';
 
-const mqlLandscape = window.matchMedia('(max-width:768px) and (orientation:landscape)');
+const mqlLandscape = window.matchMedia('(max-height:500px) and (orientation:landscape)');
 
 function switchView(name) {
   currentView = name;
