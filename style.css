@@ -656,6 +656,7 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
     position:fixed;bottom:56px;left:0;right:0;
     width:100%;height:75vh;
     z-index:95;flex:none;
+    background:rgba(14,14,18,.8);
     border-left:none;border-top:1px solid var(--line-2);
     border-radius:16px 16px 0 0;
     box-shadow:0 -20px 60px rgba(0,0,0,.5);
@@ -732,6 +733,7 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   .feed{
     top:56px;left:auto;right:0;bottom:56px;
     width:45vw;height:auto;
+    background:rgba(14,14,18,.8);
     transform:translateX(100%);
     border-radius:0;border-top:none;
     border-left:1px solid var(--line-2);
