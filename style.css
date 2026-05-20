@@ -598,15 +598,33 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   /* Stage fills all available space */
   .stage{flex:1;min-width:0}
 
-  /* HUD — span full width, smaller numbers */
+  /* HUD — compact horizontal strip at top-right, same pattern as landscape */
   .hud{
-    top:12px;right:12px;left:12px;min-width:0;width:auto;
+    display:flex;flex-direction:row;align-items:center;
+    top:8px;right:8px;left:auto;min-width:0;width:auto;
   }
-  .hud-grid{padding:10px 12px;gap:8px}
-  .hud-n{font-size:20px}
+  .hud-head{
+    border-bottom:none;border-right:1px solid var(--line-1);
+    padding:5px 10px;background:none;
+  }
+  .hud-sig{display:none}
+  .hud-grid{display:flex;flex-direction:row;padding:5px 10px;gap:12px}
+  .hud-stat{flex-direction:row;align-items:center;gap:4px}
+  .hud-n{font-size:14px}
+  .hud-l{font-size:8px;margin-top:0}
 
-  /* Legend — float above mobile nav */
-  .legend{bottom:calc(56px + 14px);left:12px}
+  /* Legend — compact horizontal strip above mobile nav, same pattern as landscape */
+  .legend{
+    bottom:calc(56px + 8px);left:8px;
+    display:flex;flex-direction:row;align-items:center;gap:10px;
+    padding:5px 10px;min-width:0;
+  }
+  .legend-head{display:none}
+  .legend-row{padding:0;gap:5px}
+  .legend-age{display:none}
+  .legend-dot{width:8px;height:8px}
+  .legend-name{font-size:9px}
+  .legend-cnt{font-size:9px}
 
   /* Zoom control — move to bottom-right, clear of feed sheet and HUD */
   .leaflet-top.leaflet-left{top:auto!important;bottom:12px!important;left:auto!important;right:12px!important}
