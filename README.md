@@ -2,7 +2,7 @@
 
 Live VFX job postings from around the world, plotted on an interactive map with filters, a live feed, and sortable list view.
 
-![Dark mode map view](https://via.placeholder.com/900x500/111/F5A524?text=VFX+JOBS+MAP)
+![Dark mode map view](assets/Screenshot.png)
 
 ## Features
 
