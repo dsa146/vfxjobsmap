@@ -32,7 +32,11 @@ function parseSheetDate(raw) {
   if (!m) return null;
   const mo = months[m[1]], day = parseInt(m[2]);
   if (mo === undefined || isNaN(day)) return null;
-  return new Date(new Date().getFullYear(), mo, day);
+  const now = new Date();
+  const d = new Date(now.getFullYear(), mo, day);
+  // If the parsed date is more than 30 days in the future, it belongs to last year
+  if (d.getTime() - now.getTime() > 30 * 86400000) d.setFullYear(now.getFullYear() - 1);
+  return d;
 }
 
 function getStatus(date) {
@@ -421,6 +425,9 @@ function openDrawer(jobId) {
     navigator.clipboard.writeText(url).then(() => {
       elDr.shareLabel.textContent = t('drawer.copied');
       setTimeout(() => { elDr.shareLabel.textContent = t('drawer.share'); }, 2000);
+    }).catch(() => {
+      elDr.shareLabel.textContent = t('drawer.copied_fail');
+      setTimeout(() => { elDr.shareLabel.textContent = t('drawer.share'); }, 2000);
     });
   };
 
@@ -431,6 +438,7 @@ function openDrawer(jobId) {
   } else {
     elDr.apply.onclick = null;
     elDr.apply.style.opacity = '0.4'; elDr.apply.style.pointerEvents = 'none';
+    elDr.apply.title = t('drawer.no_contact');
   }
 
   elDr.backdrop.classList.remove('hidden');
@@ -811,7 +819,7 @@ function renderJobMiniCard(j, removable) {
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
         <span class="eye-dot" style="background:${sc};box-shadow:0 0 6px ${sc};flex:none"></span>
-        <span style="font-family:var(--font-m);font-size:9px;color:${sc};text-transform:uppercase;letter-spacing:.12em">${j.status}</span>
+        <span style="font-family:var(--font-m);font-size:9px;color:${sc};text-transform:uppercase;letter-spacing:.12em">${t('status.' + j.status)}</span>
         <span style="font-family:var(--font-m);font-size:9px;color:var(--fg-4)">· ${fmtAge(j.postedH)}</span>
       </div>
       <div style="font-family:var(--font-s);font-size:13px;font-weight:600;color:var(--fg-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(j.t)}</div>
@@ -971,7 +979,7 @@ let syncMobileNav    = () => {};
     let startY = 0;
     handle.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
     handle.addEventListener('touchend', e => {
-      if (e.changedTouches[0].clientY - startY > 40) openSheet('none');
+      if (e.changedTouches[0].clientY - startY > Math.max(36, window.innerHeight * 0.06)) openSheet('none');
     }, {passive:true});
     handle.addEventListener('click', () => openSheet('none'));
   });
