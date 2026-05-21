@@ -426,6 +426,66 @@ const LOCALES = {
     'app.open_roles_meta': (n,status,color) => `${n} puesto${n!==1?'s':''} abierto${n!==1?'s':''} · estado <span style="color:${color}">${status}</span>`,
   },
 
+  'zh-TW': {
+    'nav.map':'地圖','nav.list':'列表','nav.studios':'工作室',
+    'nav.feed':'動態','nav.filters':'篩選',
+    'toolbar.submit':'提交職位',
+    'search.placeholder':'搜尋工作室、職位、城市…',
+    'rail.filters':'— 篩選','rail.discipline':'— 職能',
+    'rail.status':'— 狀態','rail.work_mode':'— 工作方式',
+    'rail.level':'— 級別','rail.region':'— 地區',
+    'rail.software':'— 軟體','rail.how_to_use':'— 使用說明',
+    'rail.source':'— 資料來源',
+    'status.all':'全部','status.new':'新發布','status.recent':'近期',
+    'status.active':'活躍','status.ongoing':'持續',
+    'work.any':'全部','work.on_site':'現場','work.hybrid':'混合','work.remote':'遠端',
+    'level.all':'全部','level.junior':'初級','level.mid':'中級',
+    'level.senior':'高級','level.lead':'主管','level.sup':'督導',
+    'region.all':'全部',
+    'disc.anim':'動畫','disc.comp':'合成','disc.fx':'FX / 特效',
+    'disc.light':'燈光','disc.model':'建模/美術','disc.pipe':'管線',
+    'disc.prod':'製作','disc.rig':'綁定',
+    'hud.title':'— 即時動態','hud.open_roles':'招募職位',
+    'hud.studios':'工作室','hud.countries':'國家',
+    'legend.status':'— 狀態','legend.today':'今天',
+    'legend.1_3d':'1–3天','legend.4_9d':'4–9天','legend.10d':'10天+',
+    'feed.title':'— 即時動態','feed.no_matches':'無結果',
+    'drawer.posted':'發布日期','drawer.work_mode':'工作方式',
+    'drawer.experience':'經驗要求','drawer.studio':'— 工作室',
+    'drawer.view_studio':'查看工作室','drawer.notes':'— 備註',
+    'drawer.apply_now':'立即申請','drawer.save':'收藏',
+    'drawer.saved':'已收藏','drawer.share':'分享','drawer.copied':'已複製!',
+    'drawer.status_label':'狀態',
+    'panel.new_title':'— 上次造訪後的新職位',
+    'panel.saved_title':'— 收藏的職位',
+    'panel.no_new':'上次造訪後無新職位',
+    'panel.no_saved':'尚無收藏職位',
+    'panel.save_hint':'開啟職位詳情並點擊收藏',
+    'list.toolbar':'— 篩選結果','list.export':'↓ 匯出 CSV',
+    'list.role':'職位','list.studio':'工作室','list.location':'地點',
+    'list.mode':'方式','list.level':'級別','list.status':'狀態',
+    'guide.key1':'搜尋','guide.text1':'欄可按工作室、職位或城市搜尋',
+    'guide.key2':'地圖標記','guide.text2':'點擊可查看該地點所有職位',
+    'guide.key3':'職位卡片','guide.text3':'點擊可查看完整詳情',
+    'guide.key4':'職能篩選標籤','guide.text4':'按部門篩選 — 支援多選',
+    'guide.key5':'軟體篩選標籤','guide.text5':'按技能要求篩選 — 支援多選',
+    'guide.key6':'立即申請','guide.text6':'按鈕連結至原始職位發布頁',
+    'guide.key7':'查看工作室','guide.text7':'顯示該工作室所有招募職位',
+    'guide.key8':'狀態','guide.text8':'顯示職位發布時間 — 新發布代表今天',
+    'app.loading':   n => n > 1 ? `載入中（第${n}次嘗試）…` : '載入中…',
+    'app.failed':    '載入失敗',
+    'app.retry':     '重試',
+    'app.positions': n => `${n}個職位`,
+    'app.open_roles':n => `個招募職位`,
+    'app.x_events':  n => `${n}則`,
+    'app.x_matches': n => `${n}個`,
+    'app.x_new':     n => `${n}個新職位`,
+    'app.x_saved':   n => `${n}個收藏`,
+    'app.age_d':     n => `${n}天前`,
+    'app.age_h':     n => `${n}小時前`,
+    'app.open_roles_meta': (n,status,color) => `${n}個招募職位 · 狀態 <span style="color:${color}">${status}</span>`,
+  },
+
   ru: {
     'nav.map':'Карта','nav.list':'Список','nav.studios':'Студии',
     'nav.feed':'Лента','nav.filters':'Фильтры',
@@ -491,8 +551,10 @@ const LOCALES = {
 let LANG = (function detectLang() {
   const stored = localStorage.getItem('vfxmap_lang');
   if (stored && LOCALES[stored]) return stored;
-  const browser = (navigator.language || 'en').slice(0, 2).toLowerCase();
-  return LOCALES[browser] ? browser : 'en';
+  const full  = (navigator.language || 'en').toLowerCase();
+  if (LOCALES[full]) return full;
+  const short = full.slice(0, 2);
+  return LOCALES[short] ? short : 'en';
 })();
 
 function t(key, ...args) {
