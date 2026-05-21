@@ -244,7 +244,7 @@ tileDark.addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
-map.on('moveend zoomend', () => { lastMapKey = ''; updateMap(); });
+
 
 function worstStatus(statuses) {
   return statuses.reduce((a,b) => STATUS_PRIORITY[b] > STATUS_PRIORITY[a] ? b : a, 'ongoing');
@@ -265,11 +265,9 @@ function updateMap() {
   if (key === lastMapKey) return;
   lastMapKey = key;
   markerLayer.clearLayers();
-  const bounds = map.getBounds().pad(0.3);
   const groups = {};
   filtered.forEach(j => {
     if (!j.ll) return;
-    if (!bounds.contains(j.ll)) return;
     const k = j.ll[0].toFixed(2)+','+j.ll[1].toFixed(2);
     if (!groups[k]) groups[k] = {ll:j.ll, jobs:[], label:j.loc};
     groups[k].jobs.push(j);
@@ -277,7 +275,7 @@ function updateMap() {
   Object.values(groups).forEach(g => {
     const status = worstStatus(g.jobs.map(j=>j.status));
     const m = L.marker(g.ll, {icon: makeIcon(status, g.jobs.length)});
-    m.bindPopup(buildPopup(g.label, g.jobs), {maxWidth:280, className:'', autoPan:false});
+    m.bindPopup(buildPopup(g.label, g.jobs), {maxWidth:280, className:''});
     markerLayer.addLayer(m);
   });
 }
