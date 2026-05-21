@@ -725,7 +725,7 @@ body.light .lang-dropdown{box-shadow:0 8px 24px rgba(0,0,0,.15)}
   .list-toolbar{padding:0 12px 12px}
 
   /* Kill pulse animations — too GPU-heavy on mobile */
-  .pin-pulse{animation:none}
+  .pin-pulse{display:none}
 }
 
 /* ── Portrait mobile: two-row topbar so search gets full width ── */

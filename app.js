@@ -242,6 +242,9 @@ const tileDark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x
 const tileLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {attribution:ATTR,subdomains:'abcd',maxZoom:19});
 tileDark.addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
+const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
+
+map.on('moveend zoomend', () => { lastMapKey = ''; updateMap(); });
 
 function worstStatus(statuses) {
   return statuses.reduce((a,b) => STATUS_PRIORITY[b] > STATUS_PRIORITY[a] ? b : a, 'ongoing');
@@ -250,8 +253,9 @@ function worstStatus(statuses) {
 function makeIcon(status, count) {
   const col = STATUS_COLOR[status];
   const badge = count > 1 ? `<span class="pin-count">${count}</span>` : '';
+  const pulse = IS_TOUCH ? '' : `<span class="pin-pulse" style="border-color:${col}55"></span>`;
   return L.divIcon({
-    html: `<div class="pin-wrap"><span class="pin-pulse" style="border-color:${col}55"></span><span class="pin-dot" style="background:${col};box-shadow:0 0 10px ${col}88"></span>${badge}</div>`,
+    html: `<div class="pin-wrap">${pulse}<span class="pin-dot" style="background:${col};box-shadow:0 0 10px ${col}88"></span>${badge}</div>`,
     className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-16],
   });
 }
@@ -261,9 +265,11 @@ function updateMap() {
   if (key === lastMapKey) return;
   lastMapKey = key;
   markerLayer.clearLayers();
+  const bounds = map.getBounds().pad(0.3);
   const groups = {};
   filtered.forEach(j => {
     if (!j.ll) return;
+    if (!bounds.contains(j.ll)) return;
     const k = j.ll[0].toFixed(2)+','+j.ll[1].toFixed(2);
     if (!groups[k]) groups[k] = {ll:j.ll, jobs:[], label:j.loc};
     groups[k].jobs.push(j);
