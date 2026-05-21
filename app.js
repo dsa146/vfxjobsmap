@@ -277,7 +277,7 @@ function updateMap() {
   Object.values(groups).forEach(g => {
     const status = worstStatus(g.jobs.map(j=>j.status));
     const m = L.marker(g.ll, {icon: makeIcon(status, g.jobs.length)});
-    m.bindPopup(buildPopup(g.label, g.jobs), {maxWidth:280, className:''});
+    m.bindPopup(buildPopup(g.label, g.jobs), {maxWidth:280, className:'', autoPan:false});
     markerLayer.addLayer(m);
   });
 }
