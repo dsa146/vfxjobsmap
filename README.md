@@ -29,7 +29,7 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 
 ## Data source
 
-Job postings are pulled from a Google Sheet via JSONP (compatible with `file://` origins where `fetch()` is blocked). The sheet is polled on load with 3 automatic retries.
+Job postings are pulled from a well-known Google Sheet from Chris Mayne via JSONP (compatible with `file://` origins where `fetch()` is blocked). The sheet is polled on load with 3 automatic retries.
 
 | Column | Field |
 |--------|-------|
