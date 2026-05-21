@@ -425,7 +425,8 @@ function openDrawer(jobId) {
   };
 
   if (j.u) {
-    elDr.apply.onclick = () => window.open(j.u, '_blank', 'noopener');
+    const href = /^https?:\/\//i.test(j.u) ? j.u : `mailto:${j.u}`;
+    elDr.apply.onclick = () => window.open(href, '_blank', 'noopener');
     elDr.apply.style.opacity = '1'; elDr.apply.style.pointerEvents = '';
   } else {
     elDr.apply.onclick = null;
