@@ -565,6 +565,24 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
 
 .hidden{display:none!important}
 
+/* ── Language picker ──────────────────────────────────────── */
+.lang-picker{position:relative;display:flex}
+.lang-dropdown{
+  position:absolute;top:calc(100% + 6px);right:0;
+  background:var(--bg-2);border:1px solid var(--line-2);
+  min-width:130px;z-index:300;overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.lang-item{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:8px 12px;background:none;border:0;text-align:left;
+  font-family:var(--font-m);font-size:11px;color:var(--fg-2);
+  cursor:pointer;letter-spacing:.06em;white-space:nowrap;
+}
+.lang-item:hover{background:var(--bg-3);color:var(--fg-1)}
+.lang-item.on{color:var(--amber)}
+body.light .lang-dropdown{box-shadow:0 8px 24px rgba(0,0,0,.15)}
+
 /* ── Mobile bottom nav (hidden on desktop) ───────────────── */
 .mobile-nav{display:none}
 
@@ -710,8 +728,19 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   .pin-pulse{animation:none}
 }
 
+/* ── Portrait mobile: two-row topbar so search gets full width ── */
+@media (max-width:768px) and (orientation:portrait) {
+  .topbar{height:auto;flex-wrap:wrap;padding:8px 12px 6px;row-gap:6px;column-gap:10px}
+  .search-wrap{order:3;flex:0 0 100%;max-width:none}
+  .topright{margin-left:auto}
+  .side-panel{top:90px}
+}
+
 /* ── Landscape mobile: side-panel split view ─────────── */
 @media (max-height:500px) and (orientation:landscape) {
+
+  /* Hide brand text — single row, need horizontal room for search */
+  .brand-text{display:none}
 
   /* HUD — collapse to a compact horizontal strip at top-left */
   .hud{

@@ -50,8 +50,8 @@ function getPostedH(date) {
 }
 
 function fmtAge(h) {
-  if (h >= 48) return Math.round(h / 24) + 'd ago';
-  return h + 'h ago';
+  if (h >= 48) return t('app.age_d', Math.round(h / 24));
+  return t('app.age_h', h);
 }
 
 // ── Job field classifiers ─────────────────────────────────────────────────
@@ -73,6 +73,21 @@ function getRemote(w) {
   if (lw === 'hybrid') return 'Hybrid';
   if (lw.includes('on-site') || lw.includes('onsite')) return 'On-site';
   return 'Remote';
+}
+function tLevel(l) {
+  const lw = (l || '').toLowerCase();
+  if (lw.includes('sup') || lw.includes('manager')) return t('level.sup');
+  if (lw.includes('lead')) return t('level.lead');
+  if (lw.includes('senior')) return t('level.senior');
+  if (lw.includes('mid')) return t('level.mid');
+  if (lw.includes('junior') || lw.includes('jr')) return t('level.junior');
+  return l || '—';
+}
+function tRemote(remote) {
+  if (remote === 'Remote') return t('work.remote');
+  if (remote === 'Hybrid') return t('work.hybrid');
+  if (remote === 'On-site') return t('work.on_site');
+  return remote;
 }
 
 function getCoords(j) {
@@ -142,7 +157,7 @@ function fetchSheetJobs() {
 async function initData(attempt) {
   attempt = attempt || 1;
   elFeedList.innerHTML = `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">
-    Loading jobs${attempt > 1 ? ' (attempt ' + attempt + ')' : ''}…</div>`;
+    ${t('app.loading', attempt)}</div>`;
   try {
     JOBS = await fetchSheetJobs();
     computeNewJobs();
@@ -154,9 +169,9 @@ async function initData(attempt) {
     if (attempt < FETCH_MAX_RETRIES) { setTimeout(() => initData(attempt + 1), FETCH_RETRY_MS); return; }
     elFeedList.innerHTML =
       `<div style="padding:20px;color:#F5A524;font-size:12px;font-family:monospace;line-height:1.8">
-        ⚠ Failed to load jobs<br>
+        ⚠ ${t('app.failed')}<br>
         <span style="color:#7A7A85;font-size:11px">${esc(e.message)}</span><br><br>
-        <button onclick="initData()" style="background:var(--amber);color:#1a1200;border:0;padding:6px 14px;font-family:monospace;font-size:11px;letter-spacing:.12em;cursor:pointer">RETRY</button>
+        <button onclick="initData()" style="background:var(--amber);color:#1a1200;border:0;padding:6px 14px;font-family:monospace;font-size:11px;letter-spacing:.12em;cursor:pointer">${t('app.retry')}</button>
       </div>`;
   }
 }
@@ -264,13 +279,13 @@ function buildPopup(city, jobs) {
       <div class="pop-job-title">${esc(j.t)}</div>
       <div class="pop-job-studio">${esc(j.s)}</div>
       <div class="pop-tags">
-        <span class="ptag" style="color:${disc?.color};border-color:${disc?.color}44">${disc?.label}</span>
-        <span class="ptag">${esc(j.l)}</span>
-        <span class="ptag">${j.remote}</span>
+        <span class="ptag" style="color:${disc?.color};border-color:${disc?.color}44">${t('disc.' + j.disc)}</span>
+        <span class="ptag">${tLevel(j.l)}</span>
+        <span class="ptag">${tRemote(j.remote)}</span>
       </div>
     </div>`;
   }).join('');
-  return `<div class="pop-head"><div class="pop-city">${esc(city)}</div><div class="pop-cnt">${jobs.length} position${jobs.length!==1?'s':''}</div></div><div class="pop-list">${rows}</div>`;
+  return `<div class="pop-head"><div class="pop-city">${esc(city)}</div><div class="pop-cnt">${t('app.positions', jobs.length)}</div></div><div class="pop-list">${rows}</div>`;
 }
 
 // ── Feed ──────────────────────────────────────────────────────────────────
@@ -281,7 +296,7 @@ function makeCardHTML(j) {
   return `<button class="jcard" data-id="${j.id}" onclick="openDrawer('${j.id}')">
     <div class="jcard-eye">
       <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
-      <span style="color:${sc};text-transform:uppercase">${j.status}</span>
+      <span style="color:${sc};text-transform:uppercase">${t('status.' + j.status)}</span>
       <span class="eye-sep">·</span>
       <span>${fmtAge(j.postedH)}</span>
       <span class="eye-id">${j.id}</span>
@@ -289,9 +304,9 @@ function makeCardHTML(j) {
     <div class="jcard-title">${esc(j.t)}</div>
     <div class="jcard-studio">${esc(j.s)} · ${esc(j.loc)}</div>
     <div class="jcard-tags">
-      <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
-      <span class="jtag">${esc(j.l)}</span>
-      <span class="jtag">${j.remote}</span>
+      <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
+      <span class="jtag">${tLevel(j.l)}</span>
+      <span class="jtag">${tRemote(j.remote)}</span>
     </div>
   </button>`;
 }
@@ -319,9 +334,9 @@ function attachFeedObserver() {
 function renderFeed() {
   if (feedObserver) { feedObserver.disconnect(); feedObserver = null; }
   feedPage = 1;
-  elFeedCount.textContent = filtered.length + ' events';
+  elFeedCount.textContent = t('app.x_events', filtered.length);
   if (!filtered.length) {
-    elFeedList.innerHTML = '<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">No matches</div>';
+    elFeedList.innerHTML = `<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">${t('feed.no_matches')}</div>`;
     feedSorted = []; return;
   }
   feedSorted = [...filtered].sort((a,b) => (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
@@ -346,7 +361,7 @@ function updateHUD() {
   elHudJobs.textContent      = filtered.length;
   elHudStudios.textContent   = studios.size;
   elHudCountries.textContent = countries.size;
-  elRailCount.textContent    = filtered.length + ' matches';
+  elRailCount.textContent    = t('app.x_matches', filtered.length);
   elLc.new.textContent     = cnt.new;
   elLc.recent.textContent  = cnt.recent;
   elLc.active.textContent  = cnt.active;
@@ -377,15 +392,15 @@ function openDrawer(jobId) {
 
   const relJobs = filtered.filter(x => x.s === j.s);
   elDr.tags.innerHTML = `
-    <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${disc?.label}</span>
-    <span class="jtag">${esc(j.l)}</span>
-    <span class="jtag">${j.remote}</span>`;
+    <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
+    <span class="jtag">${tLevel(j.l)}</span>
+    <span class="jtag">${tRemote(j.remote)}</span>`;
 
   elDr.posted.textContent = j.d + ', ' + new Date().getFullYear();
-  elDr.mode.textContent   = j.remote;
-  elDr.level.textContent  = j.l;
+  elDr.mode.textContent   = tRemote(j.remote);
+  elDr.level.textContent  = tLevel(j.l);
   elDr.sname.textContent  = j.s;
-  elDr.smeta.innerHTML    = `${relJobs.length} open roles · status <span style="color:${sc}">${j.status}</span>`;
+  elDr.smeta.innerHTML    = t('app.open_roles_meta', relJobs.length, t('status.' + j.status), sc);
 
   if (j.n) { elDr.notes.textContent = j.n; elDr.notesSection.style.display = ''; }
   else      { elDr.notesSection.style.display = 'none'; }
@@ -404,8 +419,8 @@ function openDrawer(jobId) {
   elDr.share.onclick = () => {
     const url = location.origin + location.pathname + '?job=' + j.id;
     navigator.clipboard.writeText(url).then(() => {
-      elDr.shareLabel.textContent = 'Copied!';
-      setTimeout(() => { elDr.shareLabel.textContent = 'Share'; }, 2000);
+      elDr.shareLabel.textContent = t('drawer.copied');
+      setTimeout(() => { elDr.shareLabel.textContent = t('drawer.share'); }, 2000);
     });
   };
 
@@ -461,7 +476,7 @@ const chipWrap = document.getElementById('disc-chips');
 DISCS.forEach(d => {
   const btn = document.createElement('button');
   btn.className = 'disc-chip';
-  btn.innerHTML = `<span class="chip-dot" style="background:${d.color}"></span>${d.label}`;
+  btn.innerHTML = `<span class="chip-dot" style="background:${d.color}"></span><span data-i18n="disc.${d.id}">${t('disc.' + d.id)}</span>`;
   btn.onclick = () => {
     if (fDiscs.includes(d.id)) {
       fDiscs = fDiscs.filter(x => x !== d.id);
@@ -582,7 +597,7 @@ const mqlLandscape = window.matchMedia('(max-height:500px) and (orientation:land
 
 function switchView(name) {
   currentView = name;
-  navLinks.forEach(a => a.classList.toggle('active', a.textContent.toLowerCase() === name));
+  navLinks.forEach(a => a.classList.toggle('active', a.dataset.nav === name));
   const landscape = mqlLandscape.matches;
   const mapWithPanel = landscape && name !== 'list' && name !== 'studios';
   mapPanel.style.display  = (name === 'map' || mapWithPanel) ? '' : 'none';
@@ -597,7 +612,7 @@ function switchView(name) {
 window.addEventListener('orientationchange', () => {
   setTimeout(() => { switchView(currentView); map.invalidateSize(); }, 300);
 });
-navLinks.forEach(a => a.addEventListener('click', () => switchView(a.textContent.toLowerCase())));
+navLinks.forEach(a => a.addEventListener('click', () => switchView(a.dataset.nav)));
 
 // ── List view ─────────────────────────────────────────────────────────────
 let listDirty = true, studiosDirty = true;
@@ -637,11 +652,11 @@ function renderListView() {
       <div><div class="list-role">${esc(j.t)}</div></div>
       <div class="list-studio">${esc(j.s)}</div>
       <div class="list-loc">${esc(j.loc)}</div>
-      <div class="list-loc">${esc(j.w)||'—'}</div>
-      <div class="list-loc">${esc(j.l)||'—'}</div>
+      <div class="list-loc">${tRemote(j.remote)}</div>
+      <div class="list-loc">${tLevel(j.l)}</div>
       <div style="display:flex;align-items:center;gap:6px">
         <div class="list-dot" style="background:${sc};box-shadow:0 0 6px ${sc}"></div>
-        <span class="list-badge" style="color:${sc};border-color:${sc}20">${j.status}</span>
+        <span class="list-badge" style="color:${sc};border-color:${sc}20">${t('status.' + j.status)}</span>
       </div>
     </div>`;
   }).join('');
@@ -674,7 +689,7 @@ function renderStudiosView() {
       <div class="sc-footer">
         <div>
           <div class="sc-count">${st.jobs.length}</div>
-          <div class="sc-count-l">Open Role${st.jobs.length!==1?'s':''}</div>
+          <div class="sc-count-l">${t('app.open_roles', st.jobs.length)}</div>
         </div>
       </div>
     </div>`;
@@ -764,7 +779,7 @@ function updateSaveBadge() {
 }
 function updateDrawerSaveState(j) {
   const saved = j && savedKeys.has(jobKey(j));
-  elDr.saveLabel.textContent      = saved ? 'Saved' : 'Save';
+  elDr.saveLabel.textContent      = saved ? t('drawer.saved') : t('drawer.save');
   elDr.saveIconOff.style.display  = saved ? 'none' : '';
   elDr.saveIconOn.style.display   = saved ? '' : 'none';
   elDr.save.style.color           = saved ? 'var(--amber)' : '';
@@ -809,18 +824,18 @@ function renderNotifPanel() {
   const body = document.getElementById('notif-body');
   const newJobs = JOBS.filter(j => newJobKeys.has(jobKey(j)))
     .sort((a,b) => (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
-  document.getElementById('notif-count').textContent = newJobs.length ? newJobs.length + ' new' : '';
+  document.getElementById('notif-count').textContent = newJobs.length ? t('app.x_new', newJobs.length) : '';
   body.innerHTML = newJobs.length
     ? newJobs.map(j => renderJobMiniCard(j, false)).join('')
-    : '<div class="sp-empty">No new jobs since last visit</div>';
+    : `<div class="sp-empty">${t('panel.no_new')}</div>`;
 }
 function renderSavedPanel() {
   const body = document.getElementById('saved-body');
   const savedJobs = JOBS.filter(j => savedKeys.has(jobKey(j)));
-  document.getElementById('saved-count').textContent = savedJobs.length ? savedJobs.length + ' saved' : '';
+  document.getElementById('saved-count').textContent = savedJobs.length ? t('app.x_saved', savedJobs.length) : '';
   body.innerHTML = savedJobs.length
     ? savedJobs.map(j => renderJobMiniCard(j, true)).join('')
-    : '<div class="sp-empty">No saved jobs yet<br><span style="font-size:10px;opacity:.6">Open a job and click Save</span></div>';
+    : `<div class="sp-empty">${t('panel.no_saved')}<br><span style="font-size:10px;opacity:.6">${t('panel.save_hint')}</span></div>`;
 }
 
 function openNotifPanel() {
@@ -848,6 +863,44 @@ document.addEventListener('click', e => {
     document.getElementById('saved-panel').classList.add('hidden');
 });
 
+// ── Language ──────────────────────────────────────────────────────────────
+function setLang(code) {
+  LANG = code;
+  localStorage.setItem('vfxmap_lang', code);
+  document.documentElement.lang = code;
+  document.getElementById('notif-panel').classList.add('hidden');
+  document.getElementById('saved-panel').classList.add('hidden');
+  applyI18n();
+  map.closePopup();
+  lastMapKey = '';
+  applyFilters();
+  if (selectedJob) openDrawer(selectedJob.id);
+  document.querySelectorAll('.lang-item').forEach(el => {
+    el.classList.toggle('on', el.dataset.lang === LANG);
+  });
+}
+
+(function initLangPicker() {
+  const btn      = document.getElementById('lang-btn');
+  const dropdown = document.getElementById('lang-dropdown');
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    dropdown.classList.toggle('hidden');
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#lang-picker')) dropdown.classList.add('hidden');
+  });
+  document.querySelectorAll('.lang-item').forEach(item => {
+    item.addEventListener('click', () => {
+      setLang(item.dataset.lang);
+      dropdown.classList.add('hidden');
+    });
+  });
+  document.querySelectorAll('.lang-item').forEach(el => {
+    el.classList.toggle('on', el.dataset.lang === LANG);
+  });
+})();
+
 // ── Boot ──────────────────────────────────────────────────────────────────
 (function initTheme() {
   const stored = localStorage.getItem('vfxmap_theme');
@@ -860,6 +913,7 @@ document.addEventListener('click', e => {
   }
 })();
 
+applyI18n();
 applyFilters();
 initData();
 

@@ -37,7 +37,7 @@
     <span class="search-icon">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
     </span>
-    <input id="search" class="search-input" placeholder="Search studios, roles, cities…" autocomplete="off"/>
+    <input id="search" class="search-input" placeholder="Search studios, roles, cities…" autocomplete="off" data-i18n="search.placeholder"/>
     <button class="search-clear" id="search-clear" aria-label="Clear search">
       <svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 1l8 8M9 1L1 9"/></svg>
     </button>
@@ -45,9 +45,9 @@
   </div>
 
   <nav class="topnav">
-    <a class="active">Map</a>
-    <a>List</a>
-    <a>Studios</a>
+    <a class="active" data-nav="map" data-i18n="nav.map">Map</a>
+    <a data-nav="list" data-i18n="nav.list">List</a>
+    <a data-nav="studios" data-i18n="nav.studios">Studios</a>
   </nav>
 
   <div class="topright">
@@ -57,6 +57,21 @@
     <a class="icon-btn" href="https://github.com/dsa146/vfxjobsmap/issues" target="_blank" rel="noopener" aria-label="Report an issue">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
     </a>
+    <div class="lang-picker" id="lang-picker">
+      <button class="icon-btn" id="lang-btn" aria-label="Change language">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </button>
+      <div class="lang-dropdown hidden" id="lang-dropdown">
+        <button class="lang-item" data-lang="en">🇬🇧 English</button>
+        <button class="lang-item" data-lang="fr">🇫🇷 Français</button>
+        <button class="lang-item" data-lang="de">🇩🇪 Deutsch</button>
+        <button class="lang-item" data-lang="ja">🇯🇵 日本語</button>
+        <button class="lang-item" data-lang="ko">🇰🇷 한국어</button>
+        <button class="lang-item" data-lang="zh">🇨🇳 中文</button>
+        <button class="lang-item" data-lang="es">🇪🇸 Español</button>
+        <button class="lang-item" data-lang="ru">🇷🇺 Русский</button>
+      </div>
+    </div>
     <button class="icon-btn" id="theme-toggle" aria-label="Toggle light/dark mode">
       <svg id="theme-icon-dark" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg id="theme-icon-light" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -69,7 +84,7 @@
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       <span class="topbar-badge" id="save-badge" style="display:none;background:var(--amber);color:#1a1200">0</span>
     </button>
-    <a class="primary-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSeXziY3GQ8N7bxM-GxwDoZ7AimguHru0105PLVQtNYygswIlw/viewform" target="_blank" rel="noopener" style="text-decoration:none">Submit a Job</a>
+    <a class="primary-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSeXziY3GQ8N7bxM-GxwDoZ7AimguHru0105PLVQtNYygswIlw/viewform" target="_blank" rel="noopener" style="text-decoration:none" data-i18n="toolbar.submit">Submit a Job</a>
   </div>
 </header>
 
@@ -81,52 +96,52 @@
     <div class="sheet-handle" id="rail-handle"></div>
     <div class="rail-head">
       <span class="live-dot"></span>
-      <span class="rail-head-title">— Filters</span>
+      <span class="rail-head-title" data-i18n="rail.filters">— Filters</span>
       <span class="rail-head-count" id="rail-count">0 matches</span>
     </div>
 
     <div class="f-section">
-      <div class="f-section-head">— Discipline</div>
+      <div class="f-section-head" data-i18n="rail.discipline">— Discipline</div>
       <div class="chip-wrap" id="disc-chips"></div>
     </div>
 
     <div class="f-section">
-      <div class="f-section-head">— Status</div>
+      <div class="f-section-head" data-i18n="rail.status">— Status</div>
       <div class="segmented" id="status-seg">
-        <button class="seg-item on" data-v="all">All</button>
-        <button class="seg-item" data-v="new">New</button>
-        <button class="seg-item" data-v="recent">Recent</button>
-        <button class="seg-item" data-v="active">Active</button>
-        <button class="seg-item" data-v="ongoing">Ongoing</button>
+        <button class="seg-item on" data-v="all" data-i18n="status.all">All</button>
+        <button class="seg-item" data-v="new" data-i18n="status.new">New</button>
+        <button class="seg-item" data-v="recent" data-i18n="status.recent">Recent</button>
+        <button class="seg-item" data-v="active" data-i18n="status.active">Active</button>
+        <button class="seg-item" data-v="ongoing" data-i18n="status.ongoing">Ongoing</button>
       </div>
     </div>
 
     <div class="f-section">
-      <div class="f-section-head">— Work Mode</div>
+      <div class="f-section-head" data-i18n="rail.work_mode">— Work Mode</div>
       <div class="segmented" id="remote-seg">
-        <button class="seg-item on" data-v="Any">Any</button>
-        <button class="seg-item" data-v="On-site">On-site</button>
-        <button class="seg-item" data-v="Hybrid">Hybrid</button>
-        <button class="seg-item" data-v="Remote">Remote</button>
+        <button class="seg-item on" data-v="Any" data-i18n="work.any">Any</button>
+        <button class="seg-item" data-v="On-site" data-i18n="work.on_site">On-site</button>
+        <button class="seg-item" data-v="Hybrid" data-i18n="work.hybrid">Hybrid</button>
+        <button class="seg-item" data-v="Remote" data-i18n="work.remote">Remote</button>
       </div>
     </div>
 
     <div class="f-section">
-      <div class="f-section-head">— Level</div>
+      <div class="f-section-head" data-i18n="rail.level">— Level</div>
       <div class="segmented" id="level-seg" style="flex-wrap:wrap;height:auto">
-        <button class="seg-item on" style="flex:none;padding:6px 10px" data-v="">All</button>
-        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="junior">Junior</button>
-        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="mid">Mid</button>
-        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="senior">Senior</button>
-        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="lead">Lead</button>
-        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="sup">Sup</button>
+        <button class="seg-item on" style="flex:none;padding:6px 10px" data-v="" data-i18n="level.all">All</button>
+        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="junior" data-i18n="level.junior">Junior</button>
+        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="mid" data-i18n="level.mid">Mid</button>
+        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="senior" data-i18n="level.senior">Senior</button>
+        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="lead" data-i18n="level.lead">Lead</button>
+        <button class="seg-item" style="flex:none;padding:6px 10px" data-v="sup" data-i18n="level.sup">Sup</button>
       </div>
     </div>
 
     <div class="f-section">
-      <div class="f-section-head">— Region</div>
+      <div class="f-section-head" data-i18n="rail.region">— Region</div>
       <div class="segmented" id="region-seg" style="flex-wrap:wrap;height:auto">
-        <button class="seg-item on" style="flex:none;padding:6px 10px" data-v="">All</button>
+        <button class="seg-item on" style="flex:none;padding:6px 10px" data-v="" data-i18n="region.all">All</button>
         <button class="seg-item" style="flex:none;padding:6px 10px" data-v="North America">NA</button>
         <button class="seg-item" style="flex:none;padding:6px 10px" data-v="Europe">EU</button>
         <button class="seg-item" style="flex:none;padding:6px 10px" data-v="Asia">Asia</button>
@@ -136,7 +151,7 @@
     </div>
 
     <div class="f-section">
-      <div class="f-section-head">— Software</div>
+      <div class="f-section-head" data-i18n="rail.software">— Software</div>
       <div class="chip-wrap">
         <button class="soft-chip">Maya</button>
         <button class="soft-chip">Unreal</button>
@@ -159,21 +174,21 @@
     </div>
 
     <div class="guide-section">
-      <div class="guide-head">— How to Use</div>
+      <div class="guide-head" data-i18n="rail.how_to_use">— How to Use</div>
       <ul class="guide-list">
-        <li><span class="guide-key">Search</span> by studio, role, or city in the top bar</li>
-        <li><span class="guide-key">Click a pin</span> on the map to see all jobs at that location</li>
-        <li><span class="guide-key">Click a job card</span> in the feed to open full details</li>
-        <li><span class="guide-key">Discipline chips</span> filter by department — multi-select supported</li>
-        <li><span class="guide-key">Software chips</span> match against job requirements — multi-select supported</li>
-        <li><span class="guide-key">Apply Now</span> in the job drawer links to the original posting</li>
-        <li><span class="guide-key">View Studio</span> shows all open roles at that studio</li>
-        <li><span class="guide-key">Status</span> reflects how recently a job was posted — New means today</li>
+        <li><span class="guide-key" data-i18n="guide.key1">Search</span><span data-i18n="guide.text1"> by studio, role, or city in the top bar</span></li>
+        <li><span class="guide-key" data-i18n="guide.key2">Click a pin</span><span data-i18n="guide.text2"> on the map to see all jobs at that location</span></li>
+        <li><span class="guide-key" data-i18n="guide.key3">Click a job card</span><span data-i18n="guide.text3"> in the feed to open full details</span></li>
+        <li><span class="guide-key" data-i18n="guide.key4">Discipline chips</span><span data-i18n="guide.text4"> filter by department — multi-select supported</span></li>
+        <li><span class="guide-key" data-i18n="guide.key5">Software chips</span><span data-i18n="guide.text5"> match against job requirements — multi-select supported</span></li>
+        <li><span class="guide-key" data-i18n="guide.key6">Apply Now</span><span data-i18n="guide.text6"> in the job drawer links to the original posting</span></li>
+        <li><span class="guide-key" data-i18n="guide.key7">View Studio</span><span data-i18n="guide.text7"> shows all open roles at that studio</span></li>
+        <li><span class="guide-key" data-i18n="guide.key8">Status</span><span data-i18n="guide.text8"> reflects how recently a job was posted — New means today</span></li>
       </ul>
     </div>
 
     <div class="guide-section" style="padding-top:16px">
-      <div class="guide-head">— Source</div>
+      <div class="guide-head" data-i18n="rail.source">— Source</div>
       <p style="font-family:var(--font-m);font-size:10px;color:var(--fg-4);line-height:1.6">
         Animation / VFX / Game Industry Job Postings<br>
         Google Spreadsheet by <span style="color:var(--fg-3)">Christopher Mayne</span>
@@ -190,50 +205,50 @@
     <div class="hud">
       <div class="hud-head">
         <span class="hud-dot"></span>
-        <span class="hud-title">— Live Feed</span>
+        <span class="hud-title" data-i18n="hud.title">— Live Feed</span>
         <span class="hud-sig" id="sig-hud">SIG —%</span>
       </div>
       <div class="hud-grid">
         <div class="hud-stat">
           <div class="hud-n" style="color:var(--amber)" id="hud-jobs">0</div>
-          <div class="hud-l">Open Roles</div>
+          <div class="hud-l" data-i18n="hud.open_roles">Open Roles</div>
         </div>
         <div class="hud-stat">
           <div class="hud-n" style="color:var(--cyan)" id="hud-studios">0</div>
-          <div class="hud-l">Studios</div>
+          <div class="hud-l" data-i18n="hud.studios">Studios</div>
         </div>
         <div class="hud-stat">
           <div class="hud-n" id="hud-countries">0</div>
-          <div class="hud-l">Countries</div>
+          <div class="hud-l" data-i18n="hud.countries">Countries</div>
         </div>
       </div>
     </div>
 
     <!-- Legend -->
     <div class="legend">
-      <div class="legend-head"><span>— Status</span><span>⛬</span></div>
+      <div class="legend-head"><span data-i18n="legend.status">— Status</span><span>⛬</span></div>
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--new);box-shadow:0 0 8px var(--new)"></span>
-        <span class="legend-name">New</span>
-        <span class="legend-age">today</span>
+        <span class="legend-name" data-i18n="status.new">New</span>
+        <span class="legend-age" data-i18n="legend.today">today</span>
         <span class="legend-cnt" id="lc-new">0</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--recent);box-shadow:0 0 6px var(--recent)"></span>
-        <span class="legend-name">Recent</span>
-        <span class="legend-age">1–3d</span>
+        <span class="legend-name" data-i18n="status.recent">Recent</span>
+        <span class="legend-age" data-i18n="legend.1_3d">1–3d</span>
         <span class="legend-cnt" id="lc-recent">0</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--active);box-shadow:0 0 8px var(--active)"></span>
-        <span class="legend-name">Active</span>
-        <span class="legend-age">4–9d</span>
+        <span class="legend-name" data-i18n="status.active">Active</span>
+        <span class="legend-age" data-i18n="legend.4_9d">4–9d</span>
         <span class="legend-cnt" id="lc-active">0</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot" style="background:var(--ongoing)"></span>
-        <span class="legend-name">Ongoing</span>
-        <span class="legend-age">10d+</span>
+        <span class="legend-name" data-i18n="status.ongoing">Ongoing</span>
+        <span class="legend-age" data-i18n="legend.10d">10d+</span>
         <span class="legend-cnt" id="lc-ongoing">0</span>
       </div>
     </div>
@@ -262,7 +277,7 @@
     <div class="sheet-handle" id="feed-handle"></div>
     <div class="feed-head">
       <span class="feed-dot"></span>
-      <span class="feed-title">— Event Feed</span>
+      <span class="feed-title" data-i18n="feed.title">— Event Feed</span>
       <span class="feed-right" id="feed-count">0 events</span>
     </div>
     <div class="feed-list" id="feed-list"></div>
@@ -283,40 +298,40 @@
     <div class="drawer-city" id="drawer-city"></div>
     <div class="drawer-tags" id="drawer-tags"></div>
     <div class="drawer-meta">
-      <div class="dmeta-stat"><div class="dmeta-l">Posted</div><div class="dmeta-v" id="dm-posted"></div></div>
-      <div class="dmeta-stat"><div class="dmeta-l">Work Mode</div><div class="dmeta-v" id="dm-mode"></div></div>
-      <div class="dmeta-stat"><div class="dmeta-l">Experience</div><div class="dmeta-v" id="dm-level"></div></div>
+      <div class="dmeta-stat"><div class="dmeta-l" data-i18n="drawer.posted">Posted</div><div class="dmeta-v" id="dm-posted"></div></div>
+      <div class="dmeta-stat"><div class="dmeta-l" data-i18n="drawer.work_mode">Work Mode</div><div class="dmeta-v" id="dm-mode"></div></div>
+      <div class="dmeta-stat"><div class="dmeta-l" data-i18n="drawer.experience">Experience</div><div class="dmeta-v" id="dm-level"></div></div>
     </div>
     <div class="drawer-section">
-      <div class="drawer-sec-head">— Studio</div>
+      <div class="drawer-sec-head" data-i18n="drawer.studio">— Studio</div>
       <div class="studio-row">
         <div>
           <div class="studio-name" id="dm-sname"></div>
           <div class="studio-meta" id="dm-smeta"></div>
         </div>
         <button class="ghost-btn" id="drawer-view-studio">
-          View studio
+          <span data-i18n="drawer.view_studio">View studio</span>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </button>
       </div>
     </div>
     <div class="drawer-section" id="drawer-notes-section">
-      <div class="drawer-sec-head">— Notes</div>
+      <div class="drawer-sec-head" data-i18n="drawer.notes">— Notes</div>
       <div class="drawer-body" id="drawer-notes"></div>
     </div>
     <div class="drawer-actions">
       <button class="primary-btn-lg" id="drawer-apply">
-        Apply now
+        <span data-i18n="drawer.apply_now">Apply now</span>
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
       <button class="ghost-btn-lg" id="drawer-save">
         <svg id="drawer-save-icon-off" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         <svg id="drawer-save-icon-on" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="1.8" style="display:none;color:var(--amber)"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        <span id="drawer-save-label">Save</span>
+        <span id="drawer-save-label" data-i18n="drawer.save">Save</span>
       </button>
       <button class="ghost-btn-lg" id="drawer-share">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        <span id="drawer-share-label">Share</span>
+        <span id="drawer-share-label" data-i18n="drawer.share">Share</span>
       </button>
     </div>
   </div>
@@ -325,7 +340,7 @@
 <!-- Notifications Panel -->
 <div class="side-panel hidden" id="notif-panel">
   <div class="sp-head">
-    <span class="sp-title">— New Since Last Visit</span>
+    <span class="sp-title" data-i18n="panel.new_title">— New Since Last Visit</span>
     <span class="sp-count" id="notif-count"></span>
     <button class="sp-close" id="notif-close">
       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -337,7 +352,7 @@
 <!-- Saved Panel -->
 <div class="side-panel hidden" id="saved-panel">
   <div class="sp-head">
-    <span class="sp-title">— Saved Jobs</span>
+    <span class="sp-title" data-i18n="panel.saved_title">— Saved Jobs</span>
     <span class="sp-count" id="saved-count"></span>
     <button class="sp-close" id="saved-close">
       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -350,16 +365,16 @@
 <div class="view-panel" id="panel-list">
   <div class="list-view">
     <div class="list-toolbar">
-      <span class="list-toolbar-label">— Filtered Results</span>
-      <button class="csv-btn" id="csv-export">↓ Export CSV</button>
+      <span class="list-toolbar-label" data-i18n="list.toolbar">— Filtered Results</span>
+      <button class="csv-btn" id="csv-export" data-i18n="list.export">↓ Export CSV</button>
     </div>
     <div class="list-table-head">
-      <button class="list-col-btn" data-col="t">Role<span class="list-sort-icon">↕</span></button>
-      <button class="list-col-btn" data-col="s">Studio<span class="list-sort-icon">↕</span></button>
-      <button class="list-col-btn" data-col="c">Location<span class="list-sort-icon">↕</span></button>
-      <button class="list-col-btn" data-col="w">Mode<span class="list-sort-icon">↕</span></button>
-      <button class="list-col-btn" data-col="l">Level<span class="list-sort-icon">↕</span></button>
-      <button class="list-col-btn" data-col="status">Status<span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="t"><span data-i18n="list.role">Role</span><span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="s"><span data-i18n="list.studio">Studio</span><span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="c"><span data-i18n="list.location">Location</span><span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="w"><span data-i18n="list.mode">Mode</span><span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="l"><span data-i18n="list.level">Level</span><span class="list-sort-icon">↕</span></button>
+      <button class="list-col-btn" data-col="status"><span data-i18n="list.status">Status</span><span class="list-sort-icon">↕</span></button>
     </div>
     <div id="list-body"></div>
   </div>
@@ -374,28 +389,29 @@
 <nav class="mobile-nav" id="mobile-nav">
   <button class="mnav-item on" data-nav="map">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
-    <span>Map</span>
+    <span data-i18n="nav.map">Map</span>
   </button>
   <button class="mnav-item" data-nav="feed">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    <span>Feed</span>
+    <span data-i18n="nav.feed">Feed</span>
   </button>
   <button class="mnav-item" data-nav="filters">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-    <span>Filters</span>
+    <span data-i18n="nav.filters">Filters</span>
   </button>
   <button class="mnav-item" data-nav="list">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
-    <span>List</span>
+    <span data-i18n="nav.list">List</span>
   </button>
   <button class="mnav-item" data-nav="studios">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="9" height="14"/><rect x="12" y="3" width="9" height="18"/><line x1="1" y1="21" x2="23" y2="21"/></svg>
-    <span>Studios</span>
+    <span data-i18n="nav.studios">Studios</span>
   </button>
 </nav>
 
 <script src="coords.js"></script>
 <script src="config.js"></script>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
