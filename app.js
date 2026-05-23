@@ -42,9 +42,9 @@ function parseSheetDate(raw) {
 function getStatus(date) {
   if (!date) return 'ongoing';
   const diffDays = (Date.now() - date.getTime()) / 86400000;
-  if (diffDays < 1)  return 'new';
-  if (diffDays < 4)  return 'recent';
-  if (diffDays < 10) return 'active';
+  if (diffDays < STATUS_DAYS.new)    return 'new';
+  if (diffDays < STATUS_DAYS.recent) return 'recent';
+  if (diffDays < STATUS_DAYS.active) return 'active';
   return 'ongoing';
 }
 
@@ -78,14 +78,31 @@ function getRemote(w) {
   if (lw.includes('on-site') || lw.includes('onsite')) return 'On-site';
   return 'Remote';
 }
+function normalizeLevel(l) {
+  const lw = (l || '').toLowerCase();
+  if (lw.includes('head') || lw.includes('director')) return 'head';
+  if (lw.includes('sup') || lw.includes('manager')) return 'sup';
+  if (lw.includes('lead')) return 'lead';
+  if (lw.includes('senior')) return 'senior';
+  if (lw.includes('mid')) return 'mid';
+  if (lw.includes('junior') || lw.includes('jr')) return 'junior';
+  if (lw.includes('assistant') || lw.includes('associate') || lw.includes('trainee') || lw.includes('intern')) return 'entry';
+  return '';
+}
 function tLevel(l) {
   const lw = (l || '').toLowerCase();
+  if (lw.includes('head') || lw.includes('director')) return t('level.head');
   if (lw.includes('sup') || lw.includes('manager')) return t('level.sup');
   if (lw.includes('lead')) return t('level.lead');
   if (lw.includes('senior')) return t('level.senior');
   if (lw.includes('mid')) return t('level.mid');
   if (lw.includes('junior') || lw.includes('jr')) return t('level.junior');
+  if (lw.includes('assistant') || lw.includes('associate') || lw.includes('trainee') || lw.includes('intern')) return t('level.entry');
   return l || '—';
+}
+function displayLevel(l) {
+  if (fLevel) return t('level.' + fLevel);
+  return tLevel(l);
 }
 function tRemote(remote) {
   if (remote === 'Remote') return t('work.remote');
@@ -164,6 +181,9 @@ async function initData(attempt) {
     ${t('app.loading', attempt)}</div>`;
   try {
     JOBS = await fetchSheetJobs();
+    const validKeys = new Set(JOBS.map(j => jobKey(j)));
+    savedKeys.forEach(k => { if (!validKeys.has(k)) savedKeys.delete(k); });
+    persistSaved(); updateSaveBadge();
     computeNewJobs();
     applyFilters();
     const sharedJob = new URLSearchParams(location.search).get('job');
@@ -202,6 +222,12 @@ const elLc = {
   active:  document.getElementById('lc-active'),
   ongoing: document.getElementById('lc-ongoing'),
 };
+function applyLegendLabels() {
+  const d = t('legend.day');
+  document.getElementById('lc-age-recent').textContent  = `1–${STATUS_DAYS.recent - 1}${d}`;
+  document.getElementById('lc-age-active').textContent  = `${STATUS_DAYS.recent}–${STATUS_DAYS.active - 1}${d}`;
+  document.getElementById('lc-age-ongoing').textContent = `${STATUS_DAYS.active}${d}+`;
+}
 const elSig = {
   hud: document.getElementById('sig-hud'),
   tc:  document.getElementById('sig-tc'),
@@ -288,7 +314,7 @@ function buildPopup(city, jobs) {
       <div class="pop-job-studio">${esc(j.s)}</div>
       <div class="pop-tags">
         <span class="ptag" style="color:${disc?.color};border-color:${disc?.color}44">${t('disc.' + j.disc)}</span>
-        <span class="ptag">${tLevel(j.l)}</span>
+        <span class="ptag">${displayLevel(j.l)}</span>
         <span class="ptag">${tRemote(j.remote)}</span>
       </div>
     </div>`;
@@ -313,7 +339,7 @@ function makeCardHTML(j) {
     <div class="jcard-studio">${esc(j.s)} · ${esc(j.loc)}</div>
     <div class="jcard-tags">
       <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
-      <span class="jtag">${tLevel(j.l)}</span>
+      <span class="jtag">${displayLevel(j.l)}</span>
       <span class="jtag">${tRemote(j.remote)}</span>
     </div>
   </button>`;
@@ -388,9 +414,9 @@ function openDrawer(jobId) {
 
   elDr.eye.innerHTML = `
     <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
-    <span style="color:${sc}">${j.status.toUpperCase()}</span>
+    <span style="color:${sc};text-transform:uppercase">${t('status.' + j.status)}</span>
     <span class="eye-sep">·</span>
-    <span>${j.id} · POSTED ${fmtAge(j.postedH).toUpperCase()}</span>`;
+    <span>${j.id} · ${t('drawer.posted').toUpperCase()} ${fmtAge(j.postedH).toUpperCase()}</span>`;
 
   elDr.title.textContent  = j.t;
   elDr.studio.textContent = j.s;
@@ -401,12 +427,13 @@ function openDrawer(jobId) {
   const relJobs = filtered.filter(x => x.s === j.s);
   elDr.tags.innerHTML = `
     <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
-    <span class="jtag">${tLevel(j.l)}</span>
+    <span class="jtag">${displayLevel(j.l)}</span>
     <span class="jtag">${tRemote(j.remote)}</span>`;
 
-  elDr.posted.textContent = j.d + ', ' + new Date().getFullYear();
+  const postDate = new Date(Date.now() - j.postedH * 3600000);
+  elDr.posted.textContent = postDate.toLocaleDateString(LANG, { year: 'numeric', month: 'short', day: 'numeric' });
   elDr.mode.textContent   = tRemote(j.remote);
-  elDr.level.textContent  = tLevel(j.l);
+  elDr.level.textContent  = displayLevel(j.l);
   elDr.sname.textContent  = j.s;
   elDr.smeta.innerHTML    = t('app.open_roles_meta', relJobs.length, t('status.' + j.status), sc);
 
@@ -469,11 +496,7 @@ function applyFilters() {
     if (fStatus !== 'all' && j.status !== fStatus) return false;
     if (fRemote !== 'Any' && j.remote !== fRemote) return false;
     if (fRegion && j.r !== fRegion) return false;
-    if (fLevel) {
-      const lv = j.l.toLowerCase();
-      const lvMatch = fLevel === 'sup' ? (lv.includes('sup') || lv.includes('manager')) : lv.includes(fLevel);
-      if (!lvMatch) return false;
-    }
+    if (fLevel && !j.l.split(/[,\/]/).some(p => normalizeLevel(p.trim()) === fLevel)) return false;
     if (fSoftRegexes.length && !fSoftRegexes.some(re => re.test(j._hay))) return false;
     if (fQueryLc && !j._search.includes(fQueryLc)) return false;
     return true;
@@ -489,15 +512,18 @@ const chipWrap = document.getElementById('disc-chips');
 DISCS.forEach(d => {
   const btn = document.createElement('button');
   btn.className = 'disc-chip';
+  btn.setAttribute('aria-pressed', 'false');
   btn.innerHTML = `<span class="chip-dot" style="background:${d.color}"></span><span data-i18n="disc.${d.id}">${t('disc.' + d.id)}</span>`;
   btn.onclick = () => {
     if (fDiscs.includes(d.id)) {
       fDiscs = fDiscs.filter(x => x !== d.id);
       btn.classList.remove('on');
+      btn.setAttribute('aria-pressed', 'false');
       btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = '';
     } else {
       fDiscs.push(d.id);
       btn.classList.add('on');
+      btn.setAttribute('aria-pressed', 'true');
       btn.style.borderColor = d.color; btn.style.color = d.color;
       btn.style.background  = hexRgba(d.color, .08);
     }
@@ -508,15 +534,18 @@ DISCS.forEach(d => {
 
 // ── Software chips ────────────────────────────────────────────────────────
 document.querySelectorAll('.soft-chip').forEach(btn => {
+  btn.setAttribute('aria-pressed', 'false');
   btn.onclick = () => {
     const sw = btn.textContent.trim().toLowerCase();
     if (fSofts.includes(sw)) {
       const i = fSofts.indexOf(sw);
       fSofts.splice(i, 1); fSoftRegexes.splice(i, 1);
       btn.classList.remove('on');
+      btn.setAttribute('aria-pressed', 'false');
     } else {
       fSofts.push(sw); fSoftRegexes.push(swRegex(sw));
       btn.classList.add('on');
+      btn.setAttribute('aria-pressed', 'true');
     }
     applyFilters();
   };
@@ -526,9 +555,12 @@ document.querySelectorAll('.soft-chip').forEach(btn => {
 function wireSegmented(id, onChange) {
   const btns = document.getElementById(id).querySelectorAll('.seg-item');
   btns.forEach(btn => {
+    btn.setAttribute('role', 'option');
+    btn.setAttribute('aria-selected', btn.classList.contains('on') ? 'true' : 'false');
     btn.onclick = () => {
-      btns.forEach(b => b.classList.remove('on'));
+      btns.forEach(b => { b.classList.remove('on'); b.setAttribute('aria-selected', 'false'); });
       btn.classList.add('on');
+      btn.setAttribute('aria-selected', 'true');
       onChange(btn.dataset.v);
     };
   });
@@ -549,7 +581,10 @@ searchKbd.textContent = isMac ? '⌘K' : 'Ctrl+K';
 document.addEventListener('keydown', e => {
   const ctrl = isMac ? e.metaKey : e.ctrlKey;
   if (ctrl && e.key === 'k') { e.preventDefault(); searchEl.focus(); searchEl.select(); }
-  if (e.key === 'Escape' && document.activeElement === searchEl) searchEl.blur();
+  if (e.key === 'Escape') {
+    if (document.activeElement === searchEl) searchEl.blur();
+    else if (selectedJob) closeDrawer();
+  }
 });
 
 function updateSearchClear() {
@@ -573,7 +608,8 @@ clearBtn.addEventListener('click', () => {
 // ── Timecode ──────────────────────────────────────────────────────────────
 function updateTimecode() {
   const n = new Date(), pad = x => String(x).padStart(2,'0');
-  elTcTime.textContent = `${pad(n.getUTCHours())}:${pad(n.getUTCMinutes())}:${pad(n.getUTCSeconds())} UTC`;
+  const tzAbbr = new Intl.DateTimeFormat('en', { timeZoneName: 'short' }).formatToParts(n).find(p => p.type === 'timeZoneName')?.value || '';
+  elTcTime.textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())} ${tzAbbr}`;
 }
 updateTimecode();
 setInterval(updateTimecode, 1000);
@@ -666,7 +702,7 @@ function renderListView() {
       <div class="list-studio">${esc(j.s)}</div>
       <div class="list-loc">${esc(j.loc)}</div>
       <div class="list-loc">${tRemote(j.remote)}</div>
-      <div class="list-loc">${tLevel(j.l)}</div>
+      <div class="list-loc">${displayLevel(j.l)}</div>
       <div style="display:flex;align-items:center;gap:6px">
         <div class="list-dot" style="background:${sc};box-shadow:0 0 6px ${sc}"></div>
         <span class="list-badge" style="color:${sc};border-color:${sc}20">${t('status.' + j.status)}</span>
@@ -770,7 +806,7 @@ document.getElementById('csv-export').addEventListener('click', exportCSV);
 const STORAGE_SAVED = 'vfxmap_saved_v1';
 const STORAGE_SEEN  = 'vfxmap_seen_v1';
 
-function jobKey(j) { return j.s + '\x00' + j.t; }
+function jobKey(j) { return j.s + '\x00' + j.t + '\x00' + j.loc; }
 function loadSet(key) { try { return new Set(JSON.parse(localStorage.getItem(key)||'[]')); } catch { return new Set(); } }
 
 let savedKeys  = loadSet(STORAGE_SAVED);
@@ -851,39 +887,40 @@ function renderSavedPanel() {
     : `<div class="sp-empty">${t('panel.no_saved')}<br><span style="font-size:10px;opacity:.6">${t('panel.save_hint')}</span></div>`;
 }
 
+function closePanel(id) { document.getElementById(id).classList.add('hidden'); }
+function closePanels() { closePanel('notif-panel'); closePanel('saved-panel'); }
+
 function openNotifPanel() {
-  document.getElementById('saved-panel').classList.add('hidden');
   const panel = document.getElementById('notif-panel');
-  if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+  if (!panel.classList.contains('hidden')) { closePanel('notif-panel'); return; }
+  closePanel('saved-panel');
   renderNotifPanel(); panel.classList.remove('hidden');
   setTimeout(markAllSeen, NOTIF_SEEN_DELAY_MS);
 }
 function openSavedPanel() {
-  document.getElementById('notif-panel').classList.add('hidden');
   const panel = document.getElementById('saved-panel');
-  if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+  if (!panel.classList.contains('hidden')) { closePanel('saved-panel'); return; }
+  closePanel('notif-panel');
   renderSavedPanel(); panel.classList.remove('hidden');
 }
 
 document.getElementById('notif-btn').addEventListener('click', e => { e.stopPropagation(); openNotifPanel(); });
 document.getElementById('saved-btn').addEventListener('click', e => { e.stopPropagation(); openSavedPanel(); });
-document.getElementById('notif-close').addEventListener('click', () => document.getElementById('notif-panel').classList.add('hidden'));
-document.getElementById('saved-close').addEventListener('click', () => document.getElementById('saved-panel').classList.add('hidden'));
+document.getElementById('notif-close').addEventListener('click', () => closePanel('notif-panel'));
+document.getElementById('saved-close').addEventListener('click', () => closePanel('saved-panel'));
 document.addEventListener('click', e => {
-  if (!e.target.closest('#notif-panel') && !e.target.closest('#notif-btn'))
-    document.getElementById('notif-panel').classList.add('hidden');
-  if (!e.target.closest('#saved-panel') && !e.target.closest('#saved-btn'))
-    document.getElementById('saved-panel').classList.add('hidden');
+  if (!e.target.closest('#notif-panel') && !e.target.closest('#notif-btn')) closePanel('notif-panel');
+  if (!e.target.closest('#saved-panel') && !e.target.closest('#saved-btn')) closePanel('saved-panel');
 });
 
 // ── Language ──────────────────────────────────────────────────────────────
 function setLang(code) {
+  if (!LOCALES[code]) return;
   LANG = code;
   localStorage.setItem('vfxmap_lang', code);
   document.documentElement.lang = code;
-  document.getElementById('notif-panel').classList.add('hidden');
-  document.getElementById('saved-panel').classList.add('hidden');
-  applyI18n();
+  closePanels();
+  applyI18n(); applyLegendLabels();
   map.closePopup();
   lastMapKey = '';
   applyFilters();
@@ -926,7 +963,7 @@ function setLang(code) {
   }
 })();
 
-applyI18n();
+applyI18n(); applyLegendLabels();
 applyFilters();
 initData();
 
@@ -952,6 +989,10 @@ let syncMobileNav    = () => {};
     railEl.classList.toggle('sheet-open', next === 'filters');
     feedEl.classList.toggle('sheet-open', next === 'feed');
     setActive(next === 'none' ? currentView : next);
+    mnavBtns.forEach(b => {
+      if (b.dataset.nav === 'filters' || b.dataset.nav === 'feed')
+        b.setAttribute('aria-expanded', b.dataset.nav === next ? 'true' : 'false');
+    });
     if (next !== 'none') map.invalidateSize();
   }
 

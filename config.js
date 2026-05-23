@@ -61,6 +61,7 @@ const COUNTRY_REGION = {
 };
 
 // ── Status ────────────────────────────────────────────────────────────────
+const STATUS_DAYS     = {new:1, recent:4, active:10}; // thresholds in days; legend labels derive from these
 const STATUS_ORDER    = {new:0, recent:1, active:2, ongoing:3};
 const STATUS_COLOR    = {new:'#FF3D5A', recent:'#FF7A3D', active:'#F5A524', ongoing:'#2BC4D2'};
 const STATUS_PRIORITY = {new:3, recent:2, active:1, ongoing:0};
