@@ -90,15 +90,8 @@ function normalizeLevel(l) {
   return '';
 }
 function tLevel(l) {
-  const lw = (l || '').toLowerCase();
-  if (lw.includes('head') || lw.includes('director')) return t('level.head');
-  if (lw.includes('sup') || lw.includes('manager')) return t('level.sup');
-  if (lw.includes('lead')) return t('level.lead');
-  if (lw.includes('senior')) return t('level.senior');
-  if (lw.includes('mid')) return t('level.mid');
-  if (lw.includes('junior') || lw.includes('jr')) return t('level.junior');
-  if (lw.includes('assistant') || lw.includes('associate') || lw.includes('trainee') || lw.includes('intern')) return t('level.entry');
-  return l || '—';
+  const key = normalizeLevel(l);
+  return key ? t('level.' + key) : (l || '—');
 }
 function displayLevel(l) {
   if (fLevel) return t('level.' + fLevel);
@@ -118,6 +111,36 @@ function getCoords(j) {
 
 
 // ── Sheet fetch ───────────────────────────────────────────────────────────
+function fetchGviz(gid, cbName) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cbName];
+      reject(new Error('Request timed out'));
+    }, FETCH_TIMEOUT_MS);
+    window[cbName] = res => {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cbName];
+      if (!res || !res.table) {
+        const msg = res?.errors?.[0]?.detailed_message || res?.errors?.[0]?.message || 'No data returned';
+        reject(new Error(msg)); return;
+      }
+      resolve(res.table.rows);
+    };
+    script.onerror = () => {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cbName];
+      reject(new Error('Network error'));
+    };
+    const qs = gid ? `tqx=out:json;responseHandler:${cbName}&gid=${gid}` : `tqx=out:json;responseHandler:${cbName}&t=${Date.now()}`;
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?${qs}`;
+    document.head.appendChild(script);
+  });
+}
+
 function parseGvizRows(rows) {
   return rows.map(row => {
     const c = row.c;
@@ -144,39 +167,12 @@ function parseGvizRows(rows) {
   });
 }
 
-function fetchSheetJobs() {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      if (script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error('Request timed out'));
-    }, FETCH_TIMEOUT_MS);
-
-    window.google = window.google || {};
-    window.google.visualization = window.google.visualization || {};
-    window.google.visualization.Query = {
-      setResponse: function(res) {
-        clearTimeout(timer);
-        if (script.parentNode) script.parentNode.removeChild(script);
-        if (!res || !res.table) {
-          const msg = res && res.errors ? res.errors[0].detailed_message || res.errors[0].message : 'No data returned';
-          reject(new Error(msg)); return;
-        }
-        try { resolve(parseGvizRows(res.table.rows)); } catch(e) { reject(e); }
-      }
-    };
-    script.onerror = () => {
-      clearTimeout(timer);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error('Network error — check internet connection'));
-    };
-    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
-    document.head.appendChild(script);
-  });
+async function fetchSheetJobs() {
+  const rows = await fetchGviz(null, 'gvizJobsCb');
+  return parseGvizRows(rows);
 }
 
-async function initData(attempt) {
-  attempt = attempt || 1;
+async function initData(attempt = 1) {
   elFeedList.innerHTML = `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">
     ${t('app.loading', attempt)}</div>`;
   try {
@@ -260,6 +256,7 @@ const elDr = {
   apply:         document.getElementById('drawer-apply'),
 };
 const elListColBtns = document.querySelectorAll('.list-col-btn');
+const elWebColBtns  = document.querySelectorAll('.web-col-btn');
 
 // ── Map ───────────────────────────────────────────────────────────────────
 const map = L.map('map', {
@@ -291,7 +288,7 @@ function makeIcon(status, count) {
 }
 
 function updateMap() {
-  const key = filtered.map(j=>j.id).join(',');
+  const key = filtered.length + ':' + (filtered[0]?.id || '') + ':' + (filtered[filtered.length - 1]?.id || '');
   if (key === lastMapKey) return;
   lastMapKey = key;
   markerLayer.clearLayers();
@@ -411,6 +408,8 @@ function openDrawer(jobId) {
   map.closePopup();
   const j = JOBS.find(x => x.id === jobId);
   if (!j) return;
+  elDr.drawer.classList.remove('drawer--edu');
+  elEduMapSection.style.display = 'none';
   const prevId = selectedJob?.id;
   selectedJob = j;
 
@@ -835,41 +834,19 @@ function renderListView() {
 let EDU_DATA = null;
 let eduQuery = '';
 
-function fetchEduData() {
-  return new Promise((resolve, reject) => {
-    const cb = 'gvizEduCb';
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cb];
-      reject(new Error('Request timed out'));
-    }, 15000);
-    window[cb] = res => {
-      clearTimeout(timer);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cb];
-      if (!res || !res.table) { reject(new Error('No data')); return; }
-      const get = (c, i) => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
-      resolve(res.table.rows
-        .map(row => ({
-          name:    get(row.c, EDU_COL.name),
-          country: get(row.c, EDU_COL.country),
-          city:    get(row.c, EDU_COL.city),
-          state:   get(row.c, EDU_COL.state),
-          desc:    get(row.c, EDU_COL.desc),
-        }))
-        .filter(e => e.name && e.name.toLowerCase() !== 'name')
-        .sort((a, b) => a.name.localeCompare(b.name)));
-    };
-    script.onerror = () => {
-      clearTimeout(timer);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cb];
-      reject(new Error('Network error'));
-    };
-    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&gid=${EDU_GID}`;
-    document.head.appendChild(script);
-  });
+async function fetchEduData() {
+  const rows = await fetchGviz(EDU_GID, 'gvizEduCb');
+  const get = (c, i) => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
+  return rows
+    .map(row => ({
+      name:    get(row.c, EDU_COL.name),
+      country: get(row.c, EDU_COL.country),
+      city:    get(row.c, EDU_COL.city),
+      state:   get(row.c, EDU_COL.state),
+      desc:    get(row.c, EDU_COL.desc),
+    }))
+    .filter(e => e.name && e.name.toLowerCase() !== 'name')
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function makeEduCardHTML(e, idx) {
@@ -886,12 +863,12 @@ function makeEduCardHTML(e, idx) {
 function renderEduCards() {
   const body = document.getElementById('edu-body');
   const q    = eduQuery.toLowerCase();
-  const list = q
-    ? EDU_DATA.map((e, i) => ({ e, i })).filter(({ e }) => `${e.name} ${e.city} ${e.country} ${e.desc}`.toLowerCase().includes(q))
-    : EDU_DATA.map((e, i) => ({ e, i }));
-  body.innerHTML = list.length
-    ? list.map(({ e, i }) => makeEduCardHTML(e, i)).join('')
-    : `<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">${t('feed.no_matches')}</div>`;
+  let html = '';
+  EDU_DATA.forEach((e, i) => {
+    if (q && !`${e.name} ${e.city} ${e.country} ${e.desc}`.toLowerCase().includes(q)) return;
+    html += makeEduCardHTML(e, i);
+  });
+  body.innerHTML = html || `<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">${t('feed.no_matches')}</div>`;
 }
 
 async function initEduView() {
@@ -911,43 +888,21 @@ let WEB_DATA = null;
 let webQuery = '';
 let webSort = { col: 'cat', dir: 1 };
 
-function fetchWebData() {
-  return new Promise((resolve, reject) => {
-    const cb = 'gvizWebCb';
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cb];
-      reject(new Error('Request timed out'));
-    }, 15000);
-    window[cb] = res => {
-      clearTimeout(timer);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cb];
-      if (!res || !res.table) { reject(new Error('No data')); return; }
-      const get = (c, i) => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
-      let currentCat = '';
-      const rows = [];
-      res.table.rows.forEach(row => {
-        const name = get(row.c, WEB_COL.name);
-        const url  = get(row.c, WEB_COL.url);
-        const notes = get(row.c, WEB_COL.notes);
-        if (!name) return;
-        if (!url) { currentCat = name; return; } // section header row
-        if (name.toLowerCase() === 'website') return; // column header row
-        rows.push({ name, url, notes, cat: currentCat });
-      });
-      resolve(rows);
-    };
-    script.onerror = () => {
-      clearTimeout(timer);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cb];
-      reject(new Error('Network error'));
-    };
-    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&gid=${WEB_GID}`;
-    document.head.appendChild(script);
+async function fetchWebData() {
+  const rows = await fetchGviz(WEB_GID, 'gvizWebCb');
+  const get = (c, i) => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
+  let currentCat = '';
+  const out = [];
+  rows.forEach(row => {
+    const name  = get(row.c, WEB_COL.name);
+    const url   = get(row.c, WEB_COL.url);
+    const notes = get(row.c, WEB_COL.notes);
+    if (!name) return;
+    if (!url) { currentCat = name; return; }
+    if (name.toLowerCase() === 'website') return;
+    out.push({ name, url, notes, cat: currentCat });
   });
+  return out;
 }
 
 function renderWebView() {
@@ -961,7 +916,7 @@ function renderWebView() {
     return av.localeCompare(bv) * webSort.dir;
   });
   // update sort icons
-  document.querySelectorAll('.web-col-btn').forEach(btn => {
+  elWebColBtns.forEach(btn => {
     const isActive = btn.dataset.col === webSort.col;
     btn.classList.toggle('active', isActive);
     btn.querySelector('.list-sort-icon').textContent = isActive ? (webSort.dir === 1 ? '↑' : '↓') : '↕';
@@ -992,7 +947,7 @@ async function initWebView() {
   }
 }
 
-document.querySelectorAll('.web-col-btn').forEach(btn => {
+elWebColBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const col = btn.dataset.col;
     if (webSort.col === col) webSort.dir *= -1;
