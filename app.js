@@ -233,27 +233,31 @@ const elSig = {
   tc:  document.getElementById('sig-tc'),
 };
 const elDr = {
-  backdrop:    document.getElementById('drawer-backdrop'),
-  eye:         document.getElementById('drawer-eye'),
-  title:       document.getElementById('drawer-title'),
-  studio:      document.getElementById('drawer-studio'),
-  city:        document.getElementById('drawer-city'),
-  tags:        document.getElementById('drawer-tags'),
-  posted:      document.getElementById('dm-posted'),
-  mode:        document.getElementById('dm-mode'),
-  level:       document.getElementById('dm-level'),
-  sname:       document.getElementById('dm-sname'),
-  smeta:       document.getElementById('dm-smeta'),
-  notesSection:document.getElementById('drawer-notes-section'),
-  notes:       document.getElementById('drawer-notes'),
-  viewStudio:  document.getElementById('drawer-view-studio'),
-  save:        document.getElementById('drawer-save'),
-  saveLabel:   document.getElementById('drawer-save-label'),
-  saveIconOff: document.getElementById('drawer-save-icon-off'),
-  saveIconOn:  document.getElementById('drawer-save-icon-on'),
-  share:       document.getElementById('drawer-share'),
-  shareLabel:  document.getElementById('drawer-share-label'),
-  apply:       document.getElementById('drawer-apply'),
+  backdrop:      document.getElementById('drawer-backdrop'),
+  drawer:        document.getElementById('drawer'),
+  eye:           document.getElementById('drawer-eye'),
+  title:         document.getElementById('drawer-title'),
+  studio:        document.getElementById('drawer-studio'),
+  city:          document.getElementById('drawer-city'),
+  tags:          document.getElementById('drawer-tags'),
+  meta:          document.querySelector('.drawer-meta'),
+  posted:        document.getElementById('dm-posted'),
+  mode:          document.getElementById('dm-mode'),
+  level:         document.getElementById('dm-level'),
+  sname:         document.getElementById('dm-sname'),
+  smeta:         document.getElementById('dm-smeta'),
+  notesSection:  document.getElementById('drawer-notes-section'),
+  notes:         document.getElementById('drawer-notes'),
+  studioSection: document.getElementById('drawer-studio-section'),
+  viewStudio:    document.getElementById('drawer-view-studio'),
+  actions:       document.querySelector('.drawer-actions'),
+  save:          document.getElementById('drawer-save'),
+  saveLabel:     document.getElementById('drawer-save-label'),
+  saveIconOff:   document.getElementById('drawer-save-icon-off'),
+  saveIconOn:    document.getElementById('drawer-save-icon-on'),
+  share:         document.getElementById('drawer-share'),
+  shareLabel:    document.getElementById('drawer-share-label'),
+  apply:         document.getElementById('drawer-apply'),
 };
 const elListColBtns = document.querySelectorAll('.list-col-btn');
 
@@ -479,6 +483,7 @@ function openDrawer(jobId) {
 
 function closeDrawer() {
   elDr.backdrop.classList.add('hidden');
+  elDr.drawer.classList.remove('drawer--edu');
   updateFeedSelected(selectedJob?.id, null);
   selectedJob = null;
   history.replaceState(null, '', location.pathname);
@@ -487,6 +492,69 @@ function closeDrawer() {
 elDr.backdrop.addEventListener('click', closeDrawer);
 document.getElementById('drawer-close').addEventListener('click', closeDrawer);
 document.getElementById('drawer').addEventListener('click', e => e.stopPropagation());
+
+// ── Edu drawer ────────────────────────────────────────────────────────────
+const EDU_COLOR = '#2BC4D2';
+let eduMiniMap = null, eduMiniMarker = null, eduMiniTile = null;
+const elEduMapSection = document.getElementById('drawer-edu-map-section');
+const MINI_TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const MINI_TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+function getEduCoords(e) {
+  if (!e.city && !e.country) return null;
+  return CC[e.city + '|' + e.country] || CC[e.city] || CO_LL[e.country] || null;
+}
+
+function syncEduMiniTile() {
+  if (!eduMiniMap) return;
+  const url = document.body.classList.contains('light') ? MINI_TILE_LIGHT : MINI_TILE_DARK;
+  if (eduMiniTile) eduMiniMap.removeLayer(eduMiniTile);
+  eduMiniTile = L.tileLayer(url, { subdomains: 'abcd', maxZoom: 19 }).addTo(eduMiniMap);
+}
+
+function updateEduMiniMap(ll) {
+  if (!eduMiniMap) {
+    eduMiniMap = L.map('drawer-edu-map', {
+      zoomControl: false, attributionControl: false,
+      dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false,
+    });
+    syncEduMiniTile();
+  }
+  eduMiniMap.setView(ll, 10);
+  const icon = L.divIcon({
+    html: `<div class="pin-wrap"><span class="pin-dot" style="background:${EDU_COLOR};box-shadow:0 0 10px ${EDU_COLOR}88"></span></div>`,
+    className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+  });
+  if (eduMiniMarker) eduMiniMarker.setLatLng(ll).setIcon(icon);
+  else eduMiniMarker = L.marker(ll, { icon }).addTo(eduMiniMap);
+  setTimeout(() => eduMiniMap.invalidateSize(), 0);
+}
+
+function openEduDrawer(idx) {
+  const e = EDU_DATA[idx];
+  if (!e) return;
+  selectedJob = null;
+  elDr.drawer.classList.add('drawer--edu');
+  elDr.eye.innerHTML = `<span class="eye-dot" style="background:${EDU_COLOR};box-shadow:0 0 8px ${EDU_COLOR}"></span><span style="color:${EDU_COLOR};text-transform:uppercase">${t('nav.edu')}</span>`;
+  elDr.title.textContent = e.name;
+  elDr.studio.textContent = '';
+  const loc = [e.city, e.state, e.country].filter(Boolean).join(', ');
+  const isOnline = !loc;
+  elDr.city.innerHTML = isOnline
+    ? `<span style="color:${EDU_COLOR}">${t('edu.online')}</span>`
+    : `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-11a7 7 0 1 1 14 0c0 6.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> ${esc(loc)}`;
+  elDr.tags.innerHTML = isOnline ? `<span class="jtag" style="color:${EDU_COLOR};border-color:${EDU_COLOR}">${t('edu.online')}</span>` : '';
+  const ll = getEduCoords(e);
+  if (ll) {
+    elEduMapSection.style.display = '';
+    updateEduMiniMap(ll);
+  } else {
+    elEduMapSection.style.display = 'none';
+  }
+  if (e.desc) { elDr.notes.textContent = e.desc; elDr.notesSection.style.display = ''; }
+  else        { elDr.notesSection.style.display = 'none'; }
+  elDr.backdrop.classList.remove('hidden');
+}
 
 // ── Filters ───────────────────────────────────────────────────────────────
 function applyFilters() {
@@ -593,16 +661,42 @@ function updateSearchClear() {
   searchKbd.style.display = hasVal ? 'none' : '';
 }
 
+function syncSearchPlaceholder() {
+  const key = currentView === 'edu' ? 'edu.search_placeholder'
+            : currentView === 'web' ? 'web.search_placeholder'
+            : 'search.placeholder';
+  searchEl.placeholder = t(key);
+}
+
 let searchTimer = 0;
 searchEl.addEventListener('input', e => {
-  fQuery = e.target.value.trim();
   updateSearchClear();
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(applyFilters, SEARCH_DEBOUNCE_MS);
+  if (currentView === 'edu') {
+    eduQuery = e.target.value.trim();
+    if (EDU_DATA) renderEduCards();
+  } else if (currentView === 'web') {
+    webQuery = e.target.value.trim();
+    if (WEB_DATA) renderWebView();
+  } else {
+    fQuery = e.target.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyFilters, SEARCH_DEBOUNCE_MS);
+  }
 });
 clearBtn.addEventListener('click', () => {
-  searchEl.value = ''; fQuery = '';
-  applyFilters(); updateSearchClear(); searchEl.focus();
+  searchEl.value = '';
+  updateSearchClear();
+  searchEl.focus();
+  if (currentView === 'edu') {
+    eduQuery = '';
+    if (EDU_DATA) renderEduCards();
+  } else if (currentView === 'web') {
+    webQuery = '';
+    if (WEB_DATA) renderWebView();
+  } else {
+    fQuery = '';
+    applyFilters();
+  }
 });
 
 // ── Timecode ──────────────────────────────────────────────────────────────
@@ -639,23 +733,49 @@ setInterval(updateSig, SIG_INTERVAL_MS);
 const mapPanel  = document.querySelector('.main');
 const listPanel = document.getElementById('panel-list');
 const studPanel = document.getElementById('panel-studios');
+const eduPanel  = document.getElementById('panel-edu');
+const webPanel  = document.getElementById('panel-web');
 const navLinks  = document.querySelectorAll('.topnav a');
 let currentView = 'map';
 
 const mqlLandscape = window.matchMedia('(max-height:500px) and (orientation:landscape)');
+const ALT_VIEWS = new Set(['edu', 'web']); // views that use their own search, not fQuery
 
 function switchView(name) {
+  const leaving = currentView;
   currentView = name;
   navLinks.forEach(a => a.classList.toggle('active', a.dataset.nav === name));
   const landscape = mqlLandscape.matches;
-  const mapWithPanel = landscape && name !== 'list' && name !== 'studios';
+  const mapWithPanel = landscape && !['list','studios','edu','web'].includes(name);
   mapPanel.style.display  = (name === 'map' || mapWithPanel) ? '' : 'none';
   listPanel.style.display = name === 'list'    ? 'flex' : 'none';
   studPanel.style.display = name === 'studios' ? 'flex' : 'none';
+  eduPanel.style.display  = name === 'edu'     ? 'flex' : 'none';
+  webPanel.style.display  = name === 'web'     ? 'flex' : 'none';
   if (name === 'list')    requestAnimationFrame(renderListView);
   if (name === 'studios') requestAnimationFrame(renderStudiosView);
+  if (name === 'edu')     requestAnimationFrame(initEduView);
+  if (name === 'web')     requestAnimationFrame(initWebView);
   if (name === 'map' || mapWithPanel) map.invalidateSize();
   syncMobileNav(name);
+  if (name !== leaving) {
+    const enteringAlt = ALT_VIEWS.has(name);
+    const leavingAlt  = ALT_VIEWS.has(leaving);
+    if (enteringAlt) {
+      fQuery = ''; eduQuery = ''; webQuery = '';
+      clearTimeout(searchTimer);
+      searchEl.value = '';
+      updateSearchClear();
+      applyFilters();
+    } else if (leavingAlt) {
+      eduQuery = ''; webQuery = '';
+      fQuery = '';
+      searchEl.value = '';
+      updateSearchClear();
+      applyFilters();
+    }
+    syncSearchPlaceholder();
+  }
 }
 
 window.addEventListener('orientationchange', () => {
@@ -710,6 +830,176 @@ function renderListView() {
     </div>`;
   }).join('');
 }
+
+// ── Education view ────────────────────────────────────────────────────────
+let EDU_DATA = null;
+let eduQuery = '';
+
+function fetchEduData() {
+  return new Promise((resolve, reject) => {
+    const cb = 'gvizEduCb';
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cb];
+      reject(new Error('Request timed out'));
+    }, 15000);
+    window[cb] = res => {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cb];
+      if (!res || !res.table) { reject(new Error('No data')); return; }
+      const get = (c, i) => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
+      resolve(res.table.rows
+        .map(row => ({
+          name:    get(row.c, EDU_COL.name),
+          country: get(row.c, EDU_COL.country),
+          city:    get(row.c, EDU_COL.city),
+          state:   get(row.c, EDU_COL.state),
+          desc:    get(row.c, EDU_COL.desc),
+        }))
+        .filter(e => e.name && e.name.toLowerCase() !== 'name')
+        .sort((a, b) => a.name.localeCompare(b.name)));
+    };
+    script.onerror = () => {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cb];
+      reject(new Error('Network error'));
+    };
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&gid=${EDU_GID}`;
+    document.head.appendChild(script);
+  });
+}
+
+function makeEduCardHTML(e, idx) {
+  const loc = [e.city, e.country].filter(Boolean).join(' · ') || null;
+  const isOnline = !loc;
+  return `<div class="edu-card" onclick="openEduDrawer(${idx})">
+    <div class="ec-name">${esc(e.name)}</div>
+    <div class="ec-loc">${esc(loc || '—')}</div>
+    ${isOnline ? `<div class="ec-tags"><span class="ec-tag online">${t('edu.online')}</span></div>` : ''}
+    <div class="ec-desc">${esc(e.desc)}</div>
+  </div>`;
+}
+
+function renderEduCards() {
+  const body = document.getElementById('edu-body');
+  const q    = eduQuery.toLowerCase();
+  const list = q
+    ? EDU_DATA.map((e, i) => ({ e, i })).filter(({ e }) => `${e.name} ${e.city} ${e.country} ${e.desc}`.toLowerCase().includes(q))
+    : EDU_DATA.map((e, i) => ({ e, i }));
+  body.innerHTML = list.length
+    ? list.map(({ e, i }) => makeEduCardHTML(e, i)).join('')
+    : `<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">${t('feed.no_matches')}</div>`;
+}
+
+async function initEduView() {
+  if (EDU_DATA) { renderEduCards(); return; }
+  const body = document.getElementById('edu-body');
+  body.innerHTML = `<div style="padding:24px;font-family:var(--font-m);font-size:11px;color:var(--fg-4);text-align:center">${t('app.loading', 1)}</div>`;
+  try {
+    EDU_DATA = await fetchEduData();
+    renderEduCards();
+  } catch(e) {
+    body.innerHTML = `<div style="padding:24px;color:#F5A524;font-size:12px;font-family:monospace">⚠ ${e.message}</div>`;
+  }
+}
+
+// ── Web Links view ────────────────────────────────────────────────────────
+let WEB_DATA = null;
+let webQuery = '';
+let webSort = { col: 'cat', dir: 1 };
+
+function fetchWebData() {
+  return new Promise((resolve, reject) => {
+    const cb = 'gvizWebCb';
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cb];
+      reject(new Error('Request timed out'));
+    }, 15000);
+    window[cb] = res => {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cb];
+      if (!res || !res.table) { reject(new Error('No data')); return; }
+      const get = (c, i) => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
+      let currentCat = '';
+      const rows = [];
+      res.table.rows.forEach(row => {
+        const name = get(row.c, WEB_COL.name);
+        const url  = get(row.c, WEB_COL.url);
+        const notes = get(row.c, WEB_COL.notes);
+        if (!name) return;
+        if (!url) { currentCat = name; return; } // section header row
+        if (name.toLowerCase() === 'website') return; // column header row
+        rows.push({ name, url, notes, cat: currentCat });
+      });
+      resolve(rows);
+    };
+    script.onerror = () => {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cb];
+      reject(new Error('Network error'));
+    };
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&gid=${WEB_GID}`;
+    document.head.appendChild(script);
+  });
+}
+
+function renderWebView() {
+  const body = document.getElementById('web-body');
+  const q = webQuery.toLowerCase();
+  let list = q
+    ? WEB_DATA.filter(w => `${w.name} ${w.notes}`.toLowerCase().includes(q))
+    : [...WEB_DATA];
+  list.sort((a, b) => {
+    const av = a[webSort.col] || '', bv = b[webSort.col] || '';
+    return av.localeCompare(bv) * webSort.dir;
+  });
+  // update sort icons
+  document.querySelectorAll('.web-col-btn').forEach(btn => {
+    const isActive = btn.dataset.col === webSort.col;
+    btn.classList.toggle('active', isActive);
+    btn.querySelector('.list-sort-icon').textContent = isActive ? (webSort.dir === 1 ? '↑' : '↓') : '↕';
+  });
+  const CAT_JOBS  = 'JOB SITES/BOARDS';
+  body.innerHTML = list.length
+    ? list.map(w => {
+        const catLabel = w.cat === CAT_JOBS ? t('web.jobs_cat') : t('web.other_cat');
+        const catColor = w.cat === CAT_JOBS ? 'var(--amber)' : 'var(--cyan)';
+        return `<a class="web-row" href="${esc(w.url)}" target="_blank" rel="noopener">
+          <div class="web-name">${esc(w.name)}</div>
+          <div><span class="web-cat-badge" style="color:${catColor};border-color:${catColor}20">${catLabel}</span></div>
+          <div class="web-notes">${esc(w.notes)}</div>
+        </a>`;
+      }).join('')
+    : `<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">${t('feed.no_matches')}</div>`;
+}
+
+async function initWebView() {
+  if (WEB_DATA) { renderWebView(); return; }
+  const body = document.getElementById('web-body');
+  body.innerHTML = `<div style="padding:24px;font-family:var(--font-m);font-size:11px;color:var(--fg-4);text-align:center">${t('app.loading', 1)}</div>`;
+  try {
+    WEB_DATA = await fetchWebData();
+    renderWebView();
+  } catch(e) {
+    body.innerHTML = `<div style="padding:24px;color:#F5A524;font-size:12px;font-family:monospace">⚠ ${e.message}</div>`;
+  }
+}
+
+document.querySelectorAll('.web-col-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const col = btn.dataset.col;
+    if (webSort.col === col) webSort.dir *= -1;
+    else { webSort.col = col; webSort.dir = 1; }
+    if (WEB_DATA) renderWebView();
+  });
+});
 
 // ── Studios view ──────────────────────────────────────────────────────────
 function renderStudiosView() {
@@ -781,6 +1071,7 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
     localStorage.setItem('vfxmap_theme', goingLight ? 'light' : 'dark');
     if (goingLight) { map.removeLayer(tileDark);  tileLight.addTo(map); }
     else            { map.removeLayer(tileLight); tileDark.addTo(map);  }
+    syncEduMiniTile();
   };
   if (!document.startViewTransition) { applyTheme(); return; }
   document.startViewTransition(applyTheme);
@@ -920,7 +1211,9 @@ function setLang(code) {
   localStorage.setItem('vfxmap_lang', code);
   document.documentElement.lang = code;
   closePanels();
-  applyI18n(); applyLegendLabels();
+  applyI18n(); applyLegendLabels(); syncSearchPlaceholder();
+  if (EDU_DATA) renderEduCards();
+  if (WEB_DATA) renderWebView();
   map.closePopup();
   lastMapKey = '';
   applyFilters();
@@ -960,10 +1253,11 @@ function setLang(code) {
     document.getElementById('theme-icon-dark').style.display  = 'none';
     document.getElementById('theme-icon-light').style.display = '';
     map.removeLayer(tileDark); tileLight.addTo(map);
+    syncEduMiniTile();
   }
 })();
 
-applyI18n(); applyLegendLabels();
+applyI18n(); applyLegendLabels(); syncSearchPlaceholder();
 applyFilters();
 initData();
 
@@ -979,9 +1273,39 @@ let syncMobileNav    = () => {};
   const mnavBtns = mobileNav.querySelectorAll('.mnav-item');
   let activeSheet = 'none';
 
-  function setActive(nav) {
-    mnavBtns.forEach(b => b.classList.toggle('on', b.dataset.nav === nav));
+  const MORE_VIEWS = new Set(['edu', 'studios', 'web']);
+  const morePopup  = document.getElementById('mnav-more-popup');
+  const moreBtn    = document.getElementById('mnav-more');
+
+  function setMorePopup(open) {
+    morePopup.classList.toggle('hidden', !open);
+    moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      morePopup.querySelectorAll('.mnav-more-item').forEach(item => {
+        item.classList.toggle('on', item.dataset.nav === currentView);
+      });
+    }
   }
+
+  function setActive(nav) {
+    const highlight = MORE_VIEWS.has(nav) ? 'more' : nav;
+    mnavBtns.forEach(b => b.classList.toggle('on', b.dataset.nav === highlight));
+  }
+
+  morePopup.querySelectorAll('.mnav-more-item').forEach(item => {
+    item.addEventListener('click', () => {
+      setMorePopup(false);
+      openSheet('none');
+      switchView(item.dataset.nav);
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (!morePopup.classList.contains('hidden') &&
+        !morePopup.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)) {
+      setMorePopup(false);
+    }
+  });
 
   function openSheet(name) {
     const next = (name === activeSheet && name !== 'none') ? 'none' : name;
@@ -997,15 +1321,19 @@ let syncMobileNav    = () => {};
   }
 
   closeMobileSheet = () => openSheet('none');
-  syncMobileNav    = (view) => { if (activeSheet === 'none') setActive(view); };
+  syncMobileNav    = (view) => { if (activeSheet === 'none') { setActive(view); setMorePopup(false); } };
 
   mnavBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const nav = btn.dataset.nav;
-      if (nav === 'feed' || nav === 'filters') {
+      if (nav === 'more') {
+        setMorePopup(morePopup.classList.contains('hidden'));
+      } else if (nav === 'feed' || nav === 'filters') {
+        setMorePopup(false);
         if (currentView !== 'map') switchView('map');
         openSheet(nav);
       } else {
+        setMorePopup(false);
         openSheet('none');
         switchView(nav);
       }

@@ -1,6 +1,6 @@
 # VFX·JOBS·MAP
 
-Live VFX job postings from around the world, plotted on an interactive map with filters, a live feed, and sortable list view.
+Live VFX job postings from around the world, plotted on an interactive map with filters, a live feed, sortable list, education resources, and curated industry links.
 
 ![Dark mode map view](assets/Screenshot.png)
 
@@ -10,14 +10,28 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 - **Filter rail** — discipline chips, status, work mode, level, region, software stack, and free-text search
 - **Live feed** — right-side panel sorted by urgency (new → recent → active → ongoing)
 - **List view** — sortable table with all open roles, CSV export
-- **Studios view** — browse and click through by studio
+- **Studios view** — browse all studios and jump to their open roles
+- **Edu view** — education resources with searchable school cards; click a card to open a detail drawer with an embedded mini-map
+- **Links view** — curated industry websites (job boards and resources) in a sortable table; click any row to open the site
 - **Job drawer** — details panel with Apply Now, Save, and Share buttons
 - **Saved jobs** — persisted in `localStorage`, amber badge on bookmark icon
 - **New jobs notifications** — red badge, auto-marks seen after 2 s
-- **Light / dark mode** — smooth cross-fade via View Transitions API
-- **HUD** — live counts: open roles, studios, countries, signal quality
-- **Internationalisation** — 9 languages with auto-detection and a globe picker
-- **Mobile-first** — bottom sheet panels in portrait, side-panel split in landscape
+- **Light / dark mode** — smooth cross-fade via View Transitions API, applied to all map tiles including the edu mini-map
+- **HUD** — live counts: open roles, studios, countries, signal quality, local time with timezone
+- **Internationalisation** — 9 languages with auto-detection and a globe picker; all dynamic content re-renders on locale switch
+- **Mobile** — 5-tab bottom nav (Map, Filters, Feed, List, ···More) with overflow popup for Edu, Studios, and Links; bottom sheet panels in portrait, side-panel split in landscape
+
+## Views
+
+| View | Description |
+|------|-------------|
+| Map | Interactive world map with job pins |
+| Filters | Discipline, status, work mode, level, region, software filters |
+| Feed | Chronological job cards sorted by urgency |
+| List | Sortable full table of filtered results with CSV export |
+| Studios | All studios with open role counts |
+| Edu | School and training resource cards with location mini-map |
+| Links | Curated job boards and industry websites |
 
 ## Internationalisation
 
@@ -46,7 +60,9 @@ Language is auto-detected from the browser on first visit and persisted in `loca
 
 ## Data source
 
-Job postings are pulled from a public Google Sheet from Chris Mayne via JSONP (compatible with `file://` origins where `fetch()` is blocked). The sheet is polled on load with 3 automatic retries.
+All data is pulled from a public Google Sheet via JSONP (compatible with `file://` origins where `fetch()` is blocked by CORS). Each sheet tab has a dedicated callback to avoid conflicts.
+
+### Jobs sheet (default tab)
 
 | Column | Field |
 |--------|-------|
@@ -61,6 +77,24 @@ Job postings are pulled from a public Google Sheet from Chris Mayne via JSONP (c
 | 18 | Software |
 | 20 | Notes |
 | 22 | Region |
+
+### Education sheet (`gid=932464799`)
+
+| Column | Field |
+|--------|-------|
+| 2 | School name |
+| 4 | Country |
+| 6 | City |
+| 8 | State |
+| 10 | Description |
+
+### Links sheet (`gid=1290941975`)
+
+| Column | Field |
+|--------|-------|
+| 2 | Site name |
+| 4 | URL |
+| 6 | Notes |
 
 ## Running locally
 
@@ -87,14 +121,14 @@ vfxjobsmap/
 ├── style.css           # All styles (dark/light themes, responsive layout)
 ├── app.js              # App logic, filters, views, map rendering
 ├── i18n.js             # Locale strings and language detection (loaded before app.js)
-├── config.js           # Sheet ID, column map, disciplines, status constants
-├── coords.js           # City → lat/lng lookup table (CC object)
+├── config.js           # Sheet IDs, column maps, disciplines, status constants
+├── coords.js           # City → lat/lng lookup table (CC and CO_LL objects)
 └── generate-coords.js  # Dev utility: rebuilds coords.js from source data
 ```
 
 ## Tech stack
 
-- [Leaflet 1.9](https://leafletjs.com/) — map rendering
+- [Leaflet 1.9](https://leafletjs.com/) — map rendering and edu mini-map
 - [CartoDB Basemaps](https://github.com/CartoDB/basemap-styles) — dark/light tiles
 - [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) + [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) + [Anton](https://fonts.google.com/specimen/Anton) — typography
 - Vanilla JS / CSS — no framework, no build tool

@@ -1,5 +1,9 @@
 // ── Sheet ─────────────────────────────────────────────────────────────────
-const SHEET_ID = '1eR2oAXOuflr8CZeGoz3JTrsgNj3KuefbdXJOmNtjEVM';
+const SHEET_ID  = '1eR2oAXOuflr8CZeGoz3JTrsgNj3KuefbdXJOmNtjEVM';
+const EDU_GID   = '932464799';
+const EDU_COL   = { name:2, country:4, city:6, state:8, desc:10 };
+const WEB_GID   = '1290941975';
+const WEB_COL   = { name:2, url:4, notes:6 };
 
 // Column indices in the gviz response (0-based)
 const COL = {

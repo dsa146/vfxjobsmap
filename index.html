@@ -57,6 +57,8 @@
     <a class="active" data-nav="map" data-i18n="nav.map">Map</a>
     <a data-nav="list" data-i18n="nav.list">List</a>
     <a data-nav="studios" data-i18n="nav.studios">Studios</a>
+    <a data-nav="edu" data-i18n="nav.edu">Edu</a>
+    <a data-nav="web" data-i18n="nav.web">Links</a>
   </nav>
 
   <div class="topright">
@@ -314,7 +316,7 @@
       <div class="dmeta-stat"><div class="dmeta-l" data-i18n="drawer.work_mode">Work Mode</div><div class="dmeta-v" id="dm-mode"></div></div>
       <div class="dmeta-stat"><div class="dmeta-l" data-i18n="drawer.experience">Experience</div><div class="dmeta-v" id="dm-level"></div></div>
     </div>
-    <div class="drawer-section">
+    <div class="drawer-section" id="drawer-studio-section">
       <div class="drawer-sec-head" data-i18n="drawer.studio">— Studio</div>
       <div class="studio-row">
         <div>
@@ -326,6 +328,10 @@
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </button>
       </div>
+    </div>
+    <div class="drawer-section" id="drawer-edu-map-section" style="display:none">
+      <div class="drawer-sec-head" data-i18n="drawer.location">— Location</div>
+      <div id="drawer-edu-map"></div>
     </div>
     <div class="drawer-section" id="drawer-notes-section">
       <div class="drawer-sec-head" data-i18n="drawer.notes">— Notes</div>
@@ -397,29 +403,63 @@
   <div class="studios-view" id="studios-body"></div>
 </div>
 
+<!-- Education View Panel -->
+<div class="view-panel" id="panel-edu">
+  <div class="edu-view">
+    <div class="edu-grid" id="edu-body"></div>
+  </div>
+</div>
+
+<!-- Web Links View Panel -->
+<div class="view-panel" id="panel-web">
+  <div class="web-view">
+    <div class="web-table-head">
+      <button class="web-col-btn" data-col="name"><span data-i18n="web.site">Site</span><span class="list-sort-icon">↕</span></button>
+      <button class="web-col-btn" data-col="cat"><span data-i18n="web.category">Category</span><span class="list-sort-icon">↕</span></button>
+      <div data-i18n="web.notes">Notes</div>
+    </div>
+    <div id="web-body"></div>
+  </div>
+</div>
+
 <!-- Mobile bottom nav (visible on ≤768px only) -->
 <nav class="mobile-nav" id="mobile-nav">
   <button class="mnav-item on" data-nav="map">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
     <span data-i18n="nav.map">Map</span>
   </button>
-  <button class="mnav-item" data-nav="feed" aria-expanded="false">
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    <span data-i18n="nav.feed">Feed</span>
-  </button>
   <button class="mnav-item" data-nav="filters" aria-expanded="false">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
     <span data-i18n="nav.filters">Filters</span>
+  </button>
+  <button class="mnav-item" data-nav="feed" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span data-i18n="nav.feed">Feed</span>
   </button>
   <button class="mnav-item" data-nav="list">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
     <span data-i18n="nav.list">List</span>
   </button>
-  <button class="mnav-item" data-nav="studios">
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="9" height="14"/><rect x="12" y="3" width="9" height="18"/><line x1="1" y1="21" x2="23" y2="21"/></svg>
-    <span data-i18n="nav.studios">Studios</span>
+  <button class="mnav-item" id="mnav-more" data-nav="more" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg>
+    <span data-i18n="nav.more">More</span>
   </button>
 </nav>
+
+<div class="mnav-more-popup hidden" id="mnav-more-popup">
+  <button class="mnav-more-item" data-nav="edu">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    <span data-i18n="nav.edu">Edu</span>
+  </button>
+  <button class="mnav-more-item" data-nav="studios">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="9" height="14"/><rect x="12" y="3" width="9" height="18"/><line x1="1" y1="21" x2="23" y2="21"/></svg>
+    <span data-i18n="nav.studios">Studios</span>
+  </button>
+  <button class="mnav-more-item" data-nav="web">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <span data-i18n="nav.web">Links</span>
+  </button>
+</div>
 
 <script src="coords.js"></script>
 <script src="config.js"></script>
