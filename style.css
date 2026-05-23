@@ -16,6 +16,8 @@
 @keyframes vfxBlink { 50%{opacity:.3} }
 @keyframes vfxFade  { from{opacity:0} to{opacity:1} }
 @keyframes vfxSlide { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes pinDrop  { 0%{transform:scale(0) translateY(-6px);opacity:0} 100%{transform:scale(1) translateY(0);opacity:1} }
+@keyframes shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -376,7 +378,7 @@ body.light .leaflet-container{background:var(--bg-0)!important}
 body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
 
 /* Custom pin marker */
-.pin-wrap{position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.pin-wrap{position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center;animation:pinDrop .35s cubic-bezier(.34,1.56,.64,1) both}
 .pin-pulse{
   position:absolute;width:24px;height:24px;border-radius:999px;border:1px solid;
   animation:vfxPulse 2.2s ease-out infinite;
@@ -519,6 +521,13 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   text-transform:uppercase;color:var(--fg-2);margin-bottom:10px;
 }
 .jcard-tags{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+/* Skeleton loading */
+.skel-line{
+  display:inline-block;border-radius:3px;
+  background:linear-gradient(90deg,var(--bg-2) 25%,var(--bg-3) 50%,var(--bg-2) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;
+}
+.skel-card{opacity:0;animation:vfxFade .3s ease forwards;pointer-events:none}
 .jtag{
   font-family:var(--font-m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--fg-2);border:1px solid var(--line-2);padding:3px 7px;

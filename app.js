@@ -111,6 +111,22 @@ function getCoords(j) {
 
 
 // ── Sheet fetch ───────────────────────────────────────────────────────────
+function renderFetchError(el, msg, retryExpr, title) {
+  const label = title !== undefined ? title : t('app.failed');
+  const hint = msg.includes('timed out') ? t('app.err_hint_access') : t('app.err_hint_network');
+  const sheetHref = `https://docs.google.com/spreadsheets/d/${SHEET_ID}`;
+  const btn = retryExpr
+    ? `<br><br><button onclick="${retryExpr}" style="background:var(--amber);color:#1a1200;border:0;padding:6px 14px;font-family:monospace;font-size:11px;letter-spacing:.12em;cursor:pointer">${t('app.retry')}</button>`
+    : '';
+  el.innerHTML = `<div style="padding:20px;color:#F5A524;font-size:12px;font-family:monospace;line-height:1.8">
+    ⚠ ${label}<br>
+    <span style="color:#7A7A85;font-size:11px">${esc(msg)}</span><br><br>
+    <span style="color:#7A7A85;font-size:10px;line-height:1.7">${hint}<br>
+    <a href="${sheetHref}" target="_blank" rel="noopener" style="color:var(--amber)">${t('app.err_open_sheet')}</a>
+    </span>${btn}
+  </div>`;
+}
+
 function fetchGviz(gid, cbName) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
@@ -173,8 +189,10 @@ async function fetchSheetJobs() {
 }
 
 async function initData(attempt = 1) {
-  elFeedList.innerHTML = `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">
-    ${t('app.loading', attempt)}</div>`;
+  dataLoadFailed = false; jobsError = null;
+  elFeedList.innerHTML = attempt === 1
+    ? makeSkelFeed()
+    : `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">${t('app.loading', attempt)}</div>`;
   try {
     JOBS = await fetchSheetJobs();
     const validKeys = new Set(JOBS.map(j => jobKey(j)));
@@ -187,17 +205,14 @@ async function initData(attempt = 1) {
   } catch(e) {
     console.error('Sheet fetch failed (attempt ' + attempt + '):', e);
     if (attempt < FETCH_MAX_RETRIES) { setTimeout(() => initData(attempt + 1), FETCH_RETRY_MS); return; }
-    elFeedList.innerHTML =
-      `<div style="padding:20px;color:#F5A524;font-size:12px;font-family:monospace;line-height:1.8">
-        ⚠ ${t('app.failed')}<br>
-        <span style="color:#7A7A85;font-size:11px">${esc(e.message)}</span><br><br>
-        <button onclick="initData()" style="background:var(--amber);color:#1a1200;border:0;padding:6px 14px;font-family:monospace;font-size:11px;letter-spacing:.12em;cursor:pointer">${t('app.retry')}</button>
-      </div>`;
+    dataLoadFailed = true; jobsError = e.message;
+    renderFetchError(elFeedList, e.message, 'initData()');
   }
 }
 
 // ── App state ─────────────────────────────────────────────────────────────
-let JOBS = [];
+let JOBS = [], dataLoadFailed = false;
+let jobsError = null, eduError = null, webError = null;
 let fDiscs = [], fSofts = [], fSoftRegexes = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fLevel = '', fQuery = '';
 let selectedJob = null, filtered = [], lastMapKey = '';
 let feedPage = 1, feedObserver = null;
@@ -277,12 +292,13 @@ function worstStatus(statuses) {
   return statuses.reduce((a,b) => STATUS_PRIORITY[b] > STATUS_PRIORITY[a] ? b : a, 'ongoing');
 }
 
-function makeIcon(status, count) {
+function makeIcon(status, count, idx = 0) {
   const col = STATUS_COLOR[status];
+  const delay = Math.min(idx * 25, 500);
   const badge = count > 1 ? `<span class="pin-count">${count}</span>` : '';
-  const pulse = IS_TOUCH ? '' : `<span class="pin-pulse" style="border-color:${col}55"></span>`;
+  const pulse = (IS_TOUCH || status === 'ongoing') ? '' : `<span class="pin-pulse" style="border-color:${col}55"></span>`;
   return L.divIcon({
-    html: `<div class="pin-wrap">${pulse}<span class="pin-dot" style="background:${col};box-shadow:0 0 10px ${col}88"></span>${badge}</div>`,
+    html: `<div class="pin-wrap" style="animation-delay:${delay}ms">${pulse}<span class="pin-dot" style="background:${col};box-shadow:0 0 10px ${col}88"></span>${badge}</div>`,
     className:'', iconSize:[24,24], iconAnchor:[12,12], popupAnchor:[0,-16],
   });
 }
@@ -299,9 +315,9 @@ function updateMap() {
     if (!groups[k]) groups[k] = {ll:j.ll, jobs:[], label:j.loc};
     groups[k].jobs.push(j);
   });
-  Object.values(groups).forEach(g => {
+  Object.values(groups).forEach((g, idx) => {
     const status = worstStatus(g.jobs.map(j=>j.status));
-    const m = L.marker(g.ll, {icon: makeIcon(status, g.jobs.length)});
+    const m = L.marker(g.ll, {icon: makeIcon(status, g.jobs.length, idx)});
     m.bindPopup(buildPopup(g.label, g.jobs), {maxWidth:280, className:''});
     markerLayer.addLayer(m);
   });
@@ -325,6 +341,25 @@ function buildPopup(city, jobs) {
 
 // ── Feed ──────────────────────────────────────────────────────────────────
 let feedSorted = [];
+
+function makeSkelFeed() {
+  const widths = [[72,44],[80,50],[65,40],[78,55],[68,46]];
+  return widths.map(([tw, sw], i) => `
+    <div class="jcard skel-card" style="animation-delay:${i * 70}ms">
+      <div class="jcard-eye">
+        <span class="skel-line" style="width:7px;height:7px;border-radius:999px"></span>
+        <span class="skel-line" style="width:52px;height:9px"></span>
+        <span class="skel-line" style="width:34px;height:9px;margin-left:auto"></span>
+      </div>
+      <div class="skel-line" style="height:15px;width:${tw}%;margin-bottom:5px"></div>
+      <div class="skel-line" style="height:10px;width:${sw}%;margin-bottom:10px"></div>
+      <div style="display:flex;gap:5px">
+        <span class="skel-line" style="width:48px;height:18px;border-radius:10px"></span>
+        <span class="skel-line" style="width:38px;height:18px;border-radius:10px"></span>
+        <span class="skel-line" style="width:52px;height:18px;border-radius:10px"></span>
+      </div>
+    </div>`).join('');
+}
 
 function makeCardHTML(j) {
   const disc = DISC_MAP[j.disc], sc = STATUS_COLOR[j.status];
@@ -367,6 +402,7 @@ function attachFeedObserver() {
 }
 
 function renderFeed() {
+  if (dataLoadFailed) return;
   if (feedObserver) { feedObserver.disconnect(); feedObserver = null; }
   feedPage = 1;
   elFeedCount.textContent = t('app.x_events', filtered.length);
@@ -877,9 +913,10 @@ async function initEduView() {
   body.innerHTML = `<div style="padding:24px;font-family:var(--font-m);font-size:11px;color:var(--fg-4);text-align:center">${t('app.loading', 1)}</div>`;
   try {
     EDU_DATA = await fetchEduData();
-    renderEduCards();
+    eduError = null; renderEduCards();
   } catch(e) {
-    body.innerHTML = `<div style="padding:24px;color:#F5A524;font-size:12px;font-family:monospace">⚠ ${e.message}</div>`;
+    eduError = e.message;
+    renderFetchError(body, e.message, 'initEduView()', t('edu.failed'));
   }
 }
 
@@ -941,9 +978,10 @@ async function initWebView() {
   body.innerHTML = `<div style="padding:24px;font-family:var(--font-m);font-size:11px;color:var(--fg-4);text-align:center">${t('app.loading', 1)}</div>`;
   try {
     WEB_DATA = await fetchWebData();
-    renderWebView();
+    webError = null; renderWebView();
   } catch(e) {
-    body.innerHTML = `<div style="padding:24px;color:#F5A524;font-size:12px;font-family:monospace">⚠ ${e.message}</div>`;
+    webError = e.message;
+    renderFetchError(body, e.message, 'initWebView()', t('web.failed'));
   }
 }
 
@@ -1168,7 +1206,10 @@ function setLang(code) {
   closePanels();
   applyI18n(); applyLegendLabels(); syncSearchPlaceholder();
   if (EDU_DATA) renderEduCards();
+  else if (eduError) renderFetchError(document.getElementById('edu-body'), eduError, 'initEduView()', t('edu.failed'));
   if (WEB_DATA) renderWebView();
+  else if (webError) renderFetchError(document.getElementById('web-body'), webError, 'initWebView()', t('web.failed'));
+  if (jobsError) renderFetchError(elFeedList, jobsError, 'initData()');
   map.closePopup();
   lastMapKey = '';
   applyFilters();
