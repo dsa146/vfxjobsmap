@@ -18,7 +18,7 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 - **New jobs notifications** — red badge, auto-marks seen after 2 s
 - **Light / dark mode** — smooth cross-fade via View Transitions API, applied to all map tiles including the edu mini-map
 - **HUD** — live counts: open roles, studios, countries, signal quality, local time with timezone
-- **Internationalisation** — 9 languages with auto-detection and a globe picker; all dynamic content re-renders on locale switch
+- **Internationalisation** — 9 languages with auto-detection and a globe picker; all dynamic content re-renders on locale switch, including region filter labels
 - **Mobile** — 5-tab bottom nav (Map, Filters, Feed, List, ···More) with overflow popup for Edu, Studios, and Links; bottom sheet panels in portrait, side-panel split in landscape
 
 ## Views
@@ -119,12 +119,16 @@ All dependencies (Leaflet, Google Fonts) are loaded from CDN. No npm install req
 vfxjobsmap/
 ├── index.html          # App shell and markup
 ├── style.css           # All styles (dark/light themes, responsive layout)
-├── app.js              # App logic, filters, views, map rendering
-├── i18n.js             # Locale strings and language detection (loaded before app.js)
 ├── config.js           # Sheet IDs, column maps, disciplines, status constants
 ├── coords.js           # City → lat/lng lookup table (CC and CO_LL objects)
+├── i18n.js             # Locale strings and language detection
+├── data.js             # Fetch constants, utilities, date helpers, sheet fetch/parse
+├── storage.js          # Saved jobs and notifications (localStorage, panels)
+├── app.js              # Filters, views, map, drawer, navigation, boot
 └── generate-coords.js  # Dev utility: rebuilds coords.js from source data
 ```
+
+Scripts are loaded in order: `coords.js` → `config.js` → `i18n.js` → `data.js` → `storage.js` → `app.js`. All share the global scope — no bundler required.
 
 ## Tech stack
 

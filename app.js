@@ -1,214 +1,9 @@
-// ── Constants ─────────────────────────────────────────────────────────────
-const FETCH_TIMEOUT_MS  = 20000;
-const FETCH_RETRY_MS    = 2000;
-const FETCH_MAX_RETRIES = 3;
-const SEARCH_DEBOUNCE_MS = 150;
-const SIG_INTERVAL_MS   = 30000;
-const SIG_TIMEOUT_MS    = 4000;
+// ── App constants ─────────────────────────────────────────────────────────
+const SEARCH_DEBOUNCE_MS  = 150;
+const SIG_INTERVAL_MS     = 30000;
+const SIG_TIMEOUT_MS      = 4000;
 const NOTIF_SEEN_DELAY_MS = 2000;
-const FEED_PAGE_SIZE    = 30;
-
-// ── Utilities ─────────────────────────────────────────────────────────────
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function hexRgba(hex, a) {
-  const m = hex.replace('#',''); const n = parseInt(m,16);
-  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
-}
-
-function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-function swRegex(sw)  { return new RegExp('(?:^|[^a-z0-9])' + escapeRe(sw) + '(?:[^a-z0-9]|$)'); }
-
-// ── Date / age helpers ────────────────────────────────────────────────────
-function parseSheetDate(raw) {
-  if (!raw) return null;
-  const s = String(raw);
-  const gviz = s.match(/Date\((\d+),(\d+),(\d+)\)/);
-  if (gviz) return new Date(+gviz[1], +gviz[2], +gviz[3]);
-  const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-  const m = s.match(/(\w{3})\w*\.?\s+(\d+)/);
-  if (!m) return null;
-  const mo = months[m[1]], day = parseInt(m[2]);
-  if (mo === undefined || isNaN(day)) return null;
-  const now = new Date();
-  const d = new Date(now.getFullYear(), mo, day);
-  // If the parsed date is more than 30 days in the future, it belongs to last year
-  if (d.getTime() - now.getTime() > 30 * 86400000) d.setFullYear(now.getFullYear() - 1);
-  return d;
-}
-
-function getStatus(date) {
-  if (!date) return 'ongoing';
-  const diffDays = (Date.now() - date.getTime()) / 86400000;
-  if (diffDays < STATUS_DAYS.new)    return 'new';
-  if (diffDays < STATUS_DAYS.recent) return 'recent';
-  if (diffDays < STATUS_DAYS.active) return 'active';
-  return 'ongoing';
-}
-
-function getPostedH(date) {
-  if (!date) return 500;
-  return Math.max(1, Math.round((Date.now() - date.getTime()) / 3600000));
-}
-
-function fmtAge(h) {
-  if (h >= 48) return t('app.age_d', Math.round(h / 24));
-  return t('app.age_h', h);
-}
-
-// ── Job field classifiers ─────────────────────────────────────────────────
-function getDisc(title) {
-  const t = title.toLowerCase();
-  if (/compositor|compositing|lighting\/compositing|matte paint/.test(t)) return 'comp';
-  if (/\blighting\b/.test(t)) return 'light';
-  if (/\banimator|\banimation/.test(t)) return 'anim';
-  if (/\bvfx|\bfx\b|fx artist|fx td|cfx/.test(t)) return 'fx';
-  if (/modeler|environment artist|character|concept|texture|look dev|generalist|groom|storyboard|illustrator|2d artist|3d artist/.test(t)) return 'model';
-  if (/rigger|rigging/.test(t)) return 'rig';
-  if (/pipeline|technical director|\btd\b|programmer|developer|engineer|systems|build engineer|technical artist|technical animator/.test(t)) return 'pipe';
-  return 'prod';
-}
-
-function getRemote(w) {
-  const lw = (w || '').toLowerCase();
-  if (lw.includes('remote') && lw.includes('on-site')) return 'Hybrid';
-  if (lw === 'hybrid') return 'Hybrid';
-  if (lw.includes('on-site') || lw.includes('onsite')) return 'On-site';
-  return 'Remote';
-}
-function normalizeLevel(l) {
-  const lw = (l || '').toLowerCase();
-  if (lw.includes('head') || lw.includes('director')) return 'head';
-  if (lw.includes('sup') || lw.includes('manager')) return 'sup';
-  if (lw.includes('lead')) return 'lead';
-  if (lw.includes('senior')) return 'senior';
-  if (lw.includes('mid')) return 'mid';
-  if (lw.includes('junior') || lw.includes('jr')) return 'junior';
-  if (lw.includes('assistant') || lw.includes('associate') || lw.includes('trainee') || lw.includes('intern')) return 'entry';
-  return '';
-}
-function tLevel(l) {
-  const key = normalizeLevel(l);
-  return key ? t('level.' + key) : (l || '—');
-}
-function displayLevel(l) {
-  if (fLevel) return t('level.' + fLevel);
-  return tLevel(l);
-}
-function tRemote(remote) {
-  if (remote === 'Remote') return t('work.remote');
-  if (remote === 'Hybrid') return t('work.hybrid');
-  if (remote === 'On-site') return t('work.on_site');
-  return remote;
-}
-
-function getCoords(j) {
-  if (!j.c) return CO_LL[j.co] || null;
-  return CC[j.c + '|' + j.co] || CC[j.c] || CO_LL[j.co] || null;
-}
-
-
-// ── Sheet fetch ───────────────────────────────────────────────────────────
-function renderFetchError(el, msg, retryExpr, title) {
-  const label = title !== undefined ? title : t('app.failed');
-  const hint = msg.includes('timed out') ? t('app.err_hint_access') : t('app.err_hint_network');
-  const sheetHref = `https://docs.google.com/spreadsheets/d/${SHEET_ID}`;
-  const btn = retryExpr
-    ? `<br><br><button onclick="${retryExpr}" style="background:var(--amber);color:#1a1200;border:0;padding:6px 14px;font-family:monospace;font-size:11px;letter-spacing:.12em;cursor:pointer">${t('app.retry')}</button>`
-    : '';
-  el.innerHTML = `<div style="padding:20px;color:#F5A524;font-size:12px;font-family:monospace;line-height:1.8">
-    ⚠ ${label}<br>
-    <span style="color:#7A7A85;font-size:11px">${esc(msg)}</span><br><br>
-    <span style="color:#7A7A85;font-size:10px;line-height:1.7">${hint}<br>
-    <a href="${sheetHref}" target="_blank" rel="noopener" style="color:var(--amber)">${t('app.err_open_sheet')}</a>
-    </span>${btn}
-  </div>`;
-}
-
-function fetchGviz(gid, cbName) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cbName];
-      reject(new Error('Request timed out'));
-    }, FETCH_TIMEOUT_MS);
-    window[cbName] = res => {
-      clearTimeout(timer);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cbName];
-      if (!res || !res.table) {
-        const msg = res?.errors?.[0]?.detailed_message || res?.errors?.[0]?.message || 'No data returned';
-        reject(new Error(msg)); return;
-      }
-      resolve(res.table.rows);
-    };
-    script.onerror = () => {
-      clearTimeout(timer);
-      if (script.parentNode) script.parentNode.removeChild(script);
-      delete window[cbName];
-      reject(new Error('Network error'));
-    };
-    const qs = gid ? `tqx=out:json;responseHandler:${cbName}&gid=${gid}` : `tqx=out:json;responseHandler:${cbName}&t=${Date.now()}`;
-    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?${qs}`;
-    document.head.appendChild(script);
-  });
-}
-
-function parseGvizRows(rows) {
-  return rows.map(row => {
-    const c = row.c;
-    const get = i => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
-    const studio = get(COL.studio), title = get(COL.title);
-    if (!studio || !title) return null;
-    const dateRaw = c[COL.date] ? (c[COL.date].f || c[COL.date].v) : '';
-    const dateStr = dateRaw ? String(dateRaw).replace(/,?\s*\d{4}$/, '').trim() : '';
-    return { s:studio, c:get(COL.city), co:get(COL.country), t:title,
-             l:get(COL.level), w:get(COL.workMode), d:dateStr,
-             r:COUNTRY_REGION[get(COL.country)] || get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes) };
-  }).filter(Boolean).map((j, i) => {
-    const date = parseSheetDate(j.d);
-    const base = {
-      ...j,
-      id: 'JOB-' + String(i+1).padStart(4,'0'),
-      disc: getDisc(j.t), status: getStatus(date), postedH: getPostedH(date),
-      remote: getRemote(j.w), ll: getCoords(j),
-      loc: j.c ? (j.co ? j.c + ', ' + j.co : j.c) : (j.co || ''),
-    };
-    base._hay    = `${base.t} ${base.sw||''} ${base.n}`.toLowerCase();
-    base._search = `${base.t} ${base.s} ${base.c} ${base.co}`.toLowerCase();
-    return base;
-  });
-}
-
-async function fetchSheetJobs() {
-  const rows = await fetchGviz(null, 'gvizJobsCb');
-  return parseGvizRows(rows);
-}
-
-async function initData(attempt = 1) {
-  dataLoadFailed = false; jobsError = null;
-  elFeedList.innerHTML = attempt === 1
-    ? makeSkelFeed()
-    : `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">${t('app.loading', attempt)}</div>`;
-  try {
-    JOBS = await fetchSheetJobs();
-    const validKeys = new Set(JOBS.map(j => jobKey(j)));
-    savedKeys.forEach(k => { if (!validKeys.has(k)) savedKeys.delete(k); });
-    persistSaved(); updateSaveBadge();
-    computeNewJobs();
-    applyFilters();
-    const sharedJob = new URLSearchParams(location.search).get('job');
-    if (sharedJob && JOBS.find(j => j.id === sharedJob)) openDrawer(sharedJob);
-  } catch(e) {
-    console.error('Sheet fetch failed (attempt ' + attempt + '):', e);
-    if (attempt < FETCH_MAX_RETRIES) { setTimeout(() => initData(attempt + 1), FETCH_RETRY_MS); return; }
-    dataLoadFailed = true; jobsError = e.message;
-    renderFetchError(elFeedList, e.message, 'initData()');
-  }
-}
+const FEED_PAGE_SIZE      = 30;
 
 // ── App state ─────────────────────────────────────────────────────────────
 let JOBS = [], dataLoadFailed = false;
@@ -285,8 +80,6 @@ const tileLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{
 tileDark.addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
-
-
 
 function worstStatus(statuses) {
   return statuses.reduce((a,b) => STATUS_PRIORITY[b] > STATUS_PRIORITY[a] ? b : a, 'ongoing');
@@ -952,7 +745,6 @@ function renderWebView() {
     const av = a[webSort.col] || '', bv = b[webSort.col] || '';
     return av.localeCompare(bv) * webSort.dir;
   });
-  // update sort icons
   elWebColBtns.forEach(btn => {
     const isActive = btn.dataset.col === webSort.col;
     btn.classList.toggle('active', isActive);
@@ -1086,117 +878,6 @@ function exportCSV() {
 }
 document.getElementById('csv-export').addEventListener('click', exportCSV);
 
-// ── Saved jobs & Notifications ────────────────────────────────────────────
-const STORAGE_SAVED = 'vfxmap_saved_v1';
-const STORAGE_SEEN  = 'vfxmap_seen_v1';
-
-function jobKey(j) { return j.s + '\x00' + j.t + '\x00' + j.loc; }
-function loadSet(key) { try { return new Set(JSON.parse(localStorage.getItem(key)||'[]')); } catch { return new Set(); } }
-
-let savedKeys  = loadSet(STORAGE_SAVED);
-let seenKeys   = loadSet(STORAGE_SEEN);
-let newJobKeys = new Set();
-
-function persistSaved() { localStorage.setItem(STORAGE_SAVED, JSON.stringify([...savedKeys])); }
-function persistSeen()  { localStorage.setItem(STORAGE_SEEN,  JSON.stringify([...seenKeys]));  }
-
-function updateNotifBadge() {
-  const n = newJobKeys.size, el = document.getElementById('notif-badge');
-  el.textContent = n > 99 ? '99+' : n;
-  el.style.display = n ? '' : 'none';
-}
-function updateSaveBadge() {
-  const n = savedKeys.size, el = document.getElementById('save-badge');
-  el.textContent = n > 99 ? '99+' : n;
-  el.style.display = n ? '' : 'none';
-}
-function updateDrawerSaveState(j) {
-  const saved = j && savedKeys.has(jobKey(j));
-  elDr.saveLabel.textContent      = saved ? t('drawer.saved') : t('drawer.save');
-  elDr.saveIconOff.style.display  = saved ? 'none' : '';
-  elDr.saveIconOn.style.display   = saved ? '' : 'none';
-  elDr.save.style.color           = saved ? 'var(--amber)' : '';
-}
-function toggleSaved(j) {
-  const k = jobKey(j);
-  if (savedKeys.has(k)) savedKeys.delete(k); else savedKeys.add(k);
-  persistSaved(); updateSaveBadge(); updateDrawerSaveState(j);
-  if (!document.getElementById('saved-panel').classList.contains('hidden')) renderSavedPanel();
-}
-function computeNewJobs() {
-  newJobKeys = new Set(JOBS.map(j => jobKey(j)).filter(k => !seenKeys.has(k)));
-  updateNotifBadge();
-}
-function markAllSeen() {
-  JOBS.forEach(j => seenKeys.add(jobKey(j)));
-  persistSeen(); newJobKeys.clear(); updateNotifBadge();
-}
-
-function renderJobMiniCard(j, removable) {
-  const disc = DISC_MAP[j.disc], sc = STATUS_COLOR[j.status];
-  const rmBtn = removable
-    ? `<button class="sp-rm" onclick="event.stopPropagation();toggleSaved(JOBS.find(x=>x.id==='${j.id}'))" title="Remove">
-        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-       </button>`
-    : '';
-  return `<div class="sp-saved-row" onclick="openDrawer('${j.id}')">
-    <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-        <span class="eye-dot" style="background:${sc};box-shadow:0 0 6px ${sc};flex:none"></span>
-        <span style="font-family:var(--font-m);font-size:9px;color:${sc};text-transform:uppercase;letter-spacing:.12em">${t('status.' + j.status)}</span>
-        <span style="font-family:var(--font-m);font-size:9px;color:var(--fg-4)">· ${fmtAge(j.postedH)}</span>
-      </div>
-      <div style="font-family:var(--font-s);font-size:13px;font-weight:600;color:var(--fg-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(j.t)}</div>
-      <div style="font-family:var(--font-m);font-size:10px;color:var(--fg-3);letter-spacing:.10em;text-transform:uppercase;margin-top:2px">${esc(j.s)} · ${esc(j.c||j.co)}</div>
-    </div>
-    ${rmBtn}
-  </div>`;
-}
-
-function renderNotifPanel() {
-  const body = document.getElementById('notif-body');
-  const newJobs = JOBS.filter(j => newJobKeys.has(jobKey(j)))
-    .sort((a,b) => (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
-  document.getElementById('notif-count').textContent = newJobs.length ? t('app.x_new', newJobs.length) : '';
-  body.innerHTML = newJobs.length
-    ? newJobs.map(j => renderJobMiniCard(j, false)).join('')
-    : `<div class="sp-empty">${t('panel.no_new')}</div>`;
-}
-function renderSavedPanel() {
-  const body = document.getElementById('saved-body');
-  const savedJobs = JOBS.filter(j => savedKeys.has(jobKey(j)));
-  document.getElementById('saved-count').textContent = savedJobs.length ? t('app.x_saved', savedJobs.length) : '';
-  body.innerHTML = savedJobs.length
-    ? savedJobs.map(j => renderJobMiniCard(j, true)).join('')
-    : `<div class="sp-empty">${t('panel.no_saved')}<br><span style="font-size:10px;opacity:.6">${t('panel.save_hint')}</span></div>`;
-}
-
-function closePanel(id) { document.getElementById(id).classList.add('hidden'); }
-function closePanels() { closePanel('notif-panel'); closePanel('saved-panel'); }
-
-function openNotifPanel() {
-  const panel = document.getElementById('notif-panel');
-  if (!panel.classList.contains('hidden')) { closePanel('notif-panel'); return; }
-  closePanel('saved-panel');
-  renderNotifPanel(); panel.classList.remove('hidden');
-  setTimeout(markAllSeen, NOTIF_SEEN_DELAY_MS);
-}
-function openSavedPanel() {
-  const panel = document.getElementById('saved-panel');
-  if (!panel.classList.contains('hidden')) { closePanel('saved-panel'); return; }
-  closePanel('notif-panel');
-  renderSavedPanel(); panel.classList.remove('hidden');
-}
-
-document.getElementById('notif-btn').addEventListener('click', e => { e.stopPropagation(); openNotifPanel(); });
-document.getElementById('saved-btn').addEventListener('click', e => { e.stopPropagation(); openSavedPanel(); });
-document.getElementById('notif-close').addEventListener('click', () => closePanel('notif-panel'));
-document.getElementById('saved-close').addEventListener('click', () => closePanel('saved-panel'));
-document.addEventListener('click', e => {
-  if (!e.target.closest('#notif-panel') && !e.target.closest('#notif-btn')) closePanel('notif-panel');
-  if (!e.target.closest('#saved-panel') && !e.target.closest('#saved-btn')) closePanel('saved-panel');
-});
-
 // ── Language ──────────────────────────────────────────────────────────────
 function setLang(code) {
   if (!LOCALES[code]) return;
@@ -1241,6 +922,28 @@ function setLang(code) {
 })();
 
 // ── Boot ──────────────────────────────────────────────────────────────────
+async function initData(attempt = 1) {
+  dataLoadFailed = false; jobsError = null;
+  elFeedList.innerHTML = attempt === 1
+    ? makeSkelFeed()
+    : `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">${t('app.loading', attempt)}</div>`;
+  try {
+    JOBS = await fetchSheetJobs();
+    const validKeys = new Set(JOBS.map(j => jobKey(j)));
+    savedKeys.forEach(k => { if (!validKeys.has(k)) savedKeys.delete(k); });
+    persistSaved(); updateSaveBadge();
+    computeNewJobs();
+    applyFilters();
+    const sharedJob = new URLSearchParams(location.search).get('job');
+    if (sharedJob && JOBS.find(j => j.id === sharedJob)) openDrawer(sharedJob);
+  } catch(e) {
+    console.error('Sheet fetch failed (attempt ' + attempt + '):', e);
+    if (attempt < FETCH_MAX_RETRIES) { setTimeout(() => initData(attempt + 1), FETCH_RETRY_MS); return; }
+    dataLoadFailed = true; jobsError = e.message;
+    renderFetchError(elFeedList, e.message, 'initData()');
+  }
+}
+
 (function initTheme() {
   const stored = localStorage.getItem('vfxmap_theme');
   const preferLight = stored ? stored === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
@@ -1336,12 +1039,10 @@ let syncMobileNav    = () => {};
     });
   });
 
-  // Tap the map stage to close any open sheet
   document.querySelector('.stage').addEventListener('click', () => {
     if (activeSheet !== 'none') openSheet('none');
   });
 
-  // Handle tap + swipe-down on sheet drag handles
   ['rail-handle', 'feed-handle'].forEach(id => {
     const handle = document.getElementById(id);
     if (!handle) return;
