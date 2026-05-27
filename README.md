@@ -117,18 +117,27 @@ All dependencies (Leaflet, Google Fonts) are loaded from CDN. No npm install req
 
 ```
 vfxjobsmap/
-├── index.html          # App shell and markup
-├── style.css           # All styles (dark/light themes, responsive layout)
-├── config.js           # Sheet IDs, column maps, disciplines, status constants
-├── coords.js           # City → lat/lng lookup table (CC and CO_LL objects)
-├── i18n.js             # Locale strings and language detection
-├── data.js             # Fetch constants, utilities, date helpers, sheet fetch/parse
-├── storage.js          # Saved jobs and notifications (localStorage, panels)
-├── app.js              # Filters, views, map, drawer, navigation, boot
-└── generate-coords.js  # Dev utility: rebuilds coords.js from source data
+|-- index.html          # App shell and markup
+|-- style.css           # All styles (dark/light themes, responsive layout)
+|-- config.js           # Sheet IDs, column maps, disciplines, status constants
+|-- coords.js           # City to lat/lng lookup table (CC and CO_LL objects)
+|-- i18n.js             # Locale strings and language detection
+|-- data.js             # Fetch constants, utilities, date helpers, sheet fetch/parse
+|-- storage.js          # Saved jobs and notifications (localStorage, panels)
+|-- app.js              # Shared constants, app state, and DOM cache
+|-- map.js              # Leaflet map, tiles, markers, and popups
+|-- feed.js             # Feed rendering, infinite scroll, and HUD counts
+|-- drawer.js           # Job drawer and education mini-map drawer
+|-- filters.js          # Discipline/software chips and segmented filters
+|-- navigation.js       # Top-level view switching
+|-- views.js            # List, studios, education, and links views
+|-- controls.js         # Search, theme, CSV export, language picker, signal/time
+|-- mobile.js           # Mobile bottom navigation and sheets
+|-- boot.js             # Theme init, data load, and startup orchestration
+`-- generate-coords.js  # Dev utility: rebuilds coords.js from source data
 ```
 
-Scripts are loaded in order: `coords.js` → `config.js` → `i18n.js` → `data.js` → `storage.js` → `app.js`. All share the global scope — no bundler required.
+Scripts are loaded in dependency order from `index.html`. All share the global scope; no bundler is required.
 
 ## Tech stack
 
