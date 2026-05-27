@@ -16,6 +16,38 @@ function hexRgba(hex, a) {
 function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function swRegex(sw)  { return new RegExp('(?:^|[^a-z0-9])' + escapeRe(sw) + '(?:[^a-z0-9]|$)'); }
 
+function hashString(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36).toUpperCase().padStart(7, '0');
+}
+
+function stableJobId(j) {
+  const key = [j.s, j.t, j.loc, j.d, j.u]
+    .map(v => String(v || '').trim().toLowerCase().replace(/\s+/g, ' '))
+    .join('|');
+  return 'JOB-' + hashString(key);
+}
+
+function safeUrl(raw, fallbackProtocol) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  const hasProtocol = /^[a-z][a-z0-9+.-]*:/i.test(s);
+  if (!hasProtocol && !fallbackProtocol) return '';
+  const candidate = fallbackProtocol && !hasProtocol
+    ? fallbackProtocol + s
+    : s;
+  try {
+    const url = new URL(candidate, location.href);
+    return ['http:', 'https:', 'mailto:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
 // ── Date / age helpers ────────────────────────────────────────────────────
 function parseSheetDate(raw) {
   if (!raw) return null;
@@ -156,6 +188,7 @@ function fetchGviz(gid, cbName) {
 }
 
 function parseGvizRows(rows) {
+  const seenIds = new Map();
   return rows.map(row => {
     const c = row.c;
     const get = i => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
@@ -163,17 +196,27 @@ function parseGvizRows(rows) {
     if (!studio || !title) return null;
     const dateRaw = c[COL.date] ? (c[COL.date].f || c[COL.date].v) : '';
     const dateStr = dateRaw ? String(dateRaw).replace(/,?\s*\d{4}$/, '').trim() : '';
+    const featuredRaw = c[COL.featured]?.v;
     return { s:studio, c:get(COL.city), co:get(COL.country), t:title,
              l:get(COL.level), w:get(COL.workMode), d:dateStr,
-             r:COUNTRY_REGION[get(COL.country)] || get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes) };
+             r:COUNTRY_REGION[get(COL.country)] || get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes),
+             featured: featuredRaw === 1 || featuredRaw === '1' };
   }).filter(Boolean).map((j, i) => {
     const date = parseSheetDate(j.d);
+    const loc = j.c ? (j.co ? j.c + ', ' + j.co : j.c) : (j.co || '');
+    const baseId = stableJobId({...j, loc});
+    const seenCount = (seenIds.get(baseId) || 0) + 1;
+    seenIds.set(baseId, seenCount);
+    const legacyId = 'JOB-' + String(i+1).padStart(4,'0');
+    const displayId = 'JOB ' + String(i+1).padStart(4,'0');
     const base = {
       ...j,
-      id: 'JOB-' + String(i+1).padStart(4,'0'),
+      id: seenCount === 1 ? baseId : `${baseId}-${seenCount}`,
+      legacyId,
+      displayId,
       disc: getDisc(j.t), status: getStatus(date), postedH: getPostedH(date),
       remote: getRemote(j.w), ll: getCoords(j),
-      loc: j.c ? (j.co ? j.c + ', ' + j.co : j.c) : (j.co || ''),
+      loc,
     };
     base._hay    = `${base.t} ${base.sw||''} ${base.n}`.toLowerCase();
     base._search = `${base.t} ${base.s} ${base.c} ${base.co}`.toLowerCase();

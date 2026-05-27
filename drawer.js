@@ -1,7 +1,7 @@
 // -- Drawer --
 function openDrawer(jobId) {
   map.closePopup();
-  const j = JOBS.find(x => x.id === jobId);
+  const j = JOBS.find(x => x.id === jobId || x.legacyId === jobId);
   if (!j) return;
   elDr.drawer.classList.remove('drawer--edu');
   elEduMapSection.style.display = 'none';
@@ -14,7 +14,7 @@ function openDrawer(jobId) {
     <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
     <span style="color:${sc};text-transform:uppercase">${t('status.' + j.status)}</span>
     <span class="eye-sep">·</span>
-    <span>${j.id} · ${t('drawer.posted').toUpperCase()} ${fmtAge(j.postedH).toUpperCase()}</span>`;
+    <span>${j.displayId || j.legacyId || j.id} · ${t('drawer.posted').toUpperCase()} ${fmtAge(j.postedH).toUpperCase()}</span>`;
 
   elDr.title.textContent  = j.t;
   elDr.studio.textContent = j.s;
@@ -60,10 +60,11 @@ function openDrawer(jobId) {
     });
   };
 
-  if (j.u) {
-    const href = /^https?:\/\//i.test(j.u) ? j.u : `mailto:${j.u}`;
+  const href = safeUrl(j.u, 'mailto:');
+  if (href) {
     elDr.apply.onclick = () => window.open(href, '_blank', 'noopener');
     elDr.apply.style.opacity = '1'; elDr.apply.style.pointerEvents = '';
+    elDr.apply.title = '';
   } else {
     elDr.apply.onclick = null;
     elDr.apply.style.opacity = '0.4'; elDr.apply.style.pointerEvents = 'none';

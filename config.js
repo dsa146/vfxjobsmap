@@ -17,6 +17,7 @@ const COL = {
   contact:  16,
   software: 18,
   notes:    20,
+  featured: 21,
   region:   22,
 };
 

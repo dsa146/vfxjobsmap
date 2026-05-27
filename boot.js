@@ -12,7 +12,7 @@ async function initData(attempt = 1) {
     computeNewJobs();
     applyFilters();
     const sharedJob = new URLSearchParams(location.search).get('job');
-    if (sharedJob && JOBS.find(j => j.id === sharedJob)) openDrawer(sharedJob);
+    if (sharedJob && JOBS.find(j => j.id === sharedJob || j.legacyId === sharedJob)) openDrawer(sharedJob);
   } catch(e) {
     console.error('Sheet fetch failed (attempt ' + attempt + '):', e);
     if (attempt < FETCH_MAX_RETRIES) { setTimeout(() => initData(attempt + 1), FETCH_RETRY_MS); return; }

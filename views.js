@@ -32,7 +32,7 @@ function renderListView() {
   }
   elListBody.innerHTML = rows.map(j => {
     const sc = STATUS_COLOR[j.status];
-    return `<div class="list-row" onclick="openDrawer('${j.id}')">
+    return `<div class="list-row${j.featured ? ' featured' : ''}" onclick="openDrawer('${j.id}')">
       <div><div class="list-role">${esc(j.t)}</div></div>
       <div class="list-studio">${esc(j.s)}</div>
       <div class="list-loc">${esc(j.loc)}</div>
@@ -142,7 +142,9 @@ function renderWebView() {
     ? list.map(w => {
         const catLabel = w.cat === CAT_JOBS ? t('web.jobs_cat') : t('web.other_cat');
         const catColor = w.cat === CAT_JOBS ? 'var(--amber)' : 'var(--cyan)';
-        return `<a class="web-row" href="${esc(w.url)}" target="_blank" rel="noopener">
+        const href = safeUrl(w.url);
+        if (!href) return '';
+        return `<a class="web-row" href="${esc(href)}" target="_blank" rel="noopener">
           <div class="web-name">${esc(w.name)}</div>
           <div><span class="web-cat-badge" style="color:${catColor};border-color:${catColor}20">${catLabel}</span></div>
           <div class="web-notes">${esc(w.notes)}</div>

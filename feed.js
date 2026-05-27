@@ -22,18 +22,19 @@ function makeSkelFeed() {
 
 function makeCardHTML(j) {
   const disc = DISC_MAP[j.disc], sc = STATUS_COLOR[j.status];
-  return `<button class="jcard" data-id="${j.id}" onclick="openDrawer('${j.id}')">
+  return `<button class="jcard${j.featured ? ' featured' : ''}" data-id="${j.id}" onclick="openDrawer('${j.id}')">
     <div class="jcard-eye">
       <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
       <span style="color:${sc};text-transform:uppercase">${t('status.' + j.status)}</span>
       <span class="eye-sep">·</span>
       <span>${fmtAge(j.postedH)}</span>
-      <span class="eye-id">${j.id}</span>
+      <span class="eye-id">${j.displayId || j.legacyId || j.id}</span>
     </div>
     <div class="jcard-title">${esc(j.t)}</div>
     <div class="jcard-studio">${esc(j.s)} · ${esc(j.loc)}</div>
     <div class="jcard-tags">
       <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
+      ${j.featured ? `<span class="jtag featured-pill">${t('job.featured')}</span>` : ''}
       <span class="jtag">${displayLevel(j.l)}</span>
       <span class="jtag">${tRemote(j.remote)}</span>
     </div>
@@ -69,7 +70,7 @@ function renderFeed() {
     elFeedList.innerHTML = `<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">${t('feed.no_matches')}</div>`;
     feedSorted = []; return;
   }
-  feedSorted = [...filtered].sort((a,b) => (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
+  feedSorted = [...filtered].sort((a,b) => Number(b.featured) - Number(a.featured) || (STATUS_ORDER[a.status]??3) - (STATUS_ORDER[b.status]??3) || a.postedH - b.postedH);
   const initial = feedSorted.slice(0, FEED_PAGE_SIZE);
   elFeedList.innerHTML = initial.map(makeCardHTML).join('');
   if (feedSorted.length > FEED_PAGE_SIZE) {
