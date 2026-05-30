@@ -8,7 +8,7 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 
 - **Interactive map** — Leaflet/CartoDB tiles, clustered pins color-coded by posting age
 - **Filter rail** — discipline chips, status, work mode, level, region, software stack, and free-text search
-- **Live feed** — right-side panel sorted by urgency (new → recent → active → ongoing)
+- **Job feed** — right-side panel sorted by featured status, then urgency (new → recent → active → ongoing)
 - **List view** — sortable table with all open roles, CSV export
 - **Studios view** — browse all studios and jump to their open roles
 - **Edu view** — education resources with searchable school cards; click a card to open a detail drawer with an embedded mini-map
@@ -27,7 +27,7 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 |------|-------------|
 | Map | Interactive world map with job pins |
 | Filters | Discipline, status, work mode, level, region, software filters |
-| Feed | Chronological job cards sorted by urgency |
+| Feed | Featured-first job cards sorted by urgency |
 | List | Sortable full table of filtered results with CSV export |
 | Studios | All studios with open role counts |
 | Edu | School and training resource cards with location mini-map |
@@ -76,6 +76,7 @@ All data is pulled from a public Google Sheet via JSONP (compatible with `file:/
 | 16 | Contact |
 | 18 | Software |
 | 20 | Notes |
+| 21 | Featured flag |
 | 22 | Region |
 
 ### Education sheet (`gid=932464799`)
@@ -126,15 +127,14 @@ vfxjobsmap/
 |-- storage.js          # Saved jobs and notifications (localStorage, panels)
 |-- app.js              # Shared constants, app state, and DOM cache
 |-- map.js              # Leaflet map, tiles, markers, and popups
-|-- feed.js             # Feed rendering, infinite scroll, and HUD counts
+|-- feed.js             # Job feed rendering, infinite scroll, and HUD counts
 |-- drawer.js           # Job drawer and education mini-map drawer
 |-- filters.js          # Discipline/software chips and segmented filters
 |-- navigation.js       # Top-level view switching
 |-- views.js            # List, studios, education, and links views
 |-- controls.js         # Search, theme, CSV export, language picker, signal/time
 |-- mobile.js           # Mobile bottom navigation and sheets
-|-- boot.js             # Theme init, data load, and startup orchestration
-`-- generate-coords.js  # Dev utility: rebuilds coords.js from source data
+`-- boot.js             # Theme init, data load, and startup orchestration
 ```
 
 Scripts are loaded in dependency order from `index.html`. All share the global scope; no bundler is required.

@@ -56,7 +56,7 @@ function renderJobMiniCard(j, removable) {
         <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
        </button>`
     : '';
-  return `<div class="sp-saved-row" onclick="openDrawer('${j.id}')">
+  return `<div class="sp-saved-row" role="button" tabindex="0" onclick="openDrawer('${j.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDrawer('${j.id}')}">
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
         <span class="eye-dot" style="background:${sc};box-shadow:0 0 6px ${sc};flex:none"></span>

@@ -32,7 +32,7 @@ function renderListView() {
   }
   elListBody.innerHTML = rows.map(j => {
     const sc = STATUS_COLOR[j.status];
-    return `<div class="list-row${j.featured ? ' featured' : ''}" onclick="openDrawer('${j.id}')">
+    return `<button class="list-row${j.featured ? ' featured' : ''}" onclick="openDrawer('${j.id}')">
       <div><div class="list-role">${esc(j.t)}</div></div>
       <div class="list-studio">${esc(j.s)}</div>
       <div class="list-loc">${esc(j.loc)}</div>
@@ -42,7 +42,7 @@ function renderListView() {
         <div class="list-dot" style="background:${sc};box-shadow:0 0 6px ${sc}"></div>
         <span class="list-badge" style="color:${sc};border-color:${sc}20">${t('status.' + j.status)}</span>
       </div>
-    </div>`;
+    </button>`;
   }).join('');
 }
 
@@ -68,12 +68,12 @@ async function fetchEduData() {
 function makeEduCardHTML(e, idx) {
   const loc = [e.city, e.country].filter(Boolean).join(' · ') || null;
   const isOnline = !loc;
-  return `<div class="edu-card" onclick="openEduDrawer(${idx})">
+  return `<button class="edu-card" onclick="openEduDrawer(${idx})">
     <div class="ec-name">${esc(e.name)}</div>
     <div class="ec-loc">${esc(loc || '—')}</div>
     ${isOnline ? `<div class="ec-tags"><span class="ec-tag online">${t('edu.online')}</span></div>` : ''}
     <div class="ec-desc">${esc(e.desc)}</div>
-  </div>`;
+  </button>`;
 }
 
 function renderEduCards() {
@@ -138,8 +138,7 @@ function renderWebView() {
     btn.querySelector('.list-sort-icon').textContent = isActive ? (webSort.dir === 1 ? '↑' : '↓') : '↕';
   });
   const CAT_JOBS  = 'JOB SITES/BOARDS';
-  body.innerHTML = list.length
-    ? list.map(w => {
+  const rows = list.map(w => {
         const catLabel = w.cat === CAT_JOBS ? t('web.jobs_cat') : t('web.other_cat');
         const catColor = w.cat === CAT_JOBS ? 'var(--amber)' : 'var(--cyan)';
         const href = safeUrl(w.url);
@@ -149,7 +148,9 @@ function renderWebView() {
           <div><span class="web-cat-badge" style="color:${catColor};border-color:${catColor}20">${catLabel}</span></div>
           <div class="web-notes">${esc(w.notes)}</div>
         </a>`;
-      }).join('')
+      }).filter(Boolean);
+  body.innerHTML = rows.length
+    ? rows.join('')
     : `<div style="padding:24px;font-family:var(--font-m);font-size:11px;letter-spacing:.14em;color:var(--fg-4);text-align:center;text-transform:uppercase">${t('feed.no_matches')}</div>`;
 }
 
@@ -192,7 +193,7 @@ function renderStudiosView() {
     const locs = [...st.locs].slice(0,2).join(' · ');
     const topStatus = st.jobs.reduce((best,j) => STATUS_PRIORITY[j.status]>STATUS_PRIORITY[best.status]?j:best, st.jobs[0]).status;
     const sc = STATUS_COLOR[topStatus];
-    return `<div class="studio-card" data-studio="${esc(st.name)}">
+    return `<button class="studio-card" data-studio="${esc(st.name)}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div class="sc-name">${esc(st.name)}</div>
         <div class="list-dot" style="background:${sc};box-shadow:0 0 8px ${sc};flex:none;margin-top:4px"></div>
@@ -205,7 +206,7 @@ function renderStudiosView() {
           <div class="sc-count-l">${t('app.open_roles', st.jobs.length)}</div>
         </div>
       </div>
-    </div>`;
+    </button>`;
   }).join('');
 }
 

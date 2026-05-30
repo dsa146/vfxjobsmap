@@ -152,6 +152,7 @@ body.light .list-row:hover{background:rgba(0,0,0,.03)}
   cursor:pointer;transition:background .1s;
 }
 .sp-saved-row:hover{background:rgba(255,255,255,.025)}
+.sp-saved-row:focus-visible{outline:1px solid var(--amber);outline-offset:-2px}
 .sp-rm{
   margin-left:auto;flex:none;width:22px;height:22px;
   background:transparent;border:1px solid var(--line-2);color:var(--fg-4);
@@ -199,7 +200,8 @@ body.light .sp-saved-row:hover{background:rgba(0,0,0,.03)}
 .list-col-btn.active .list-sort-icon{opacity:1;color:var(--amber)}
 .list-row{
   display:grid;grid-template-columns:2fr 1.4fr 1fr .8fr .8fr .8fr;
-  gap:12px;padding:10px 12px;border-bottom:1px solid var(--line-1);
+  gap:12px;padding:10px 12px;border:0;border-bottom:1px solid var(--line-1);
+  background:transparent;color:inherit;font:inherit;width:100%;text-align:left;
   cursor:pointer;transition:background .1s;align-items:center;
 }
 .list-row:hover{background:rgba(255,255,255,.025)}
@@ -223,7 +225,7 @@ body.light .sp-saved-row:hover{background:rgba(0,0,0,.03)}
 .studios-view{padding:24px 32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;align-content:start}
 .studio-card{
   background:var(--bg-1);border:1px solid var(--line-1);padding:20px;
-  cursor:pointer;transition:border-color .15s;
+  color:inherit;font:inherit;text-align:left;cursor:pointer;transition:border-color .15s;
 }
 .studio-card:hover{border-color:var(--line-3)}
 .sc-name{font-family:var(--font-s);font-size:15px;font-weight:600;color:var(--fg-1);margin-bottom:6px}
@@ -240,7 +242,7 @@ body.light .sp-saved-row:hover{background:rgba(0,0,0,.03)}
 /* ── Education view ──────────────────────────────────────── */
 .edu-view{display:flex;flex-direction:column;flex:1;min-height:0}
 .edu-grid{padding:24px 32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;align-content:start;overflow-y:auto;flex:1}
-.edu-card{background:var(--bg-1);border:1px solid var(--line-1);padding:20px;display:flex;flex-direction:column;cursor:pointer;transition:border-color .15s}
+.edu-card{background:var(--bg-1);border:1px solid var(--line-1);padding:20px;display:flex;flex-direction:column;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:border-color .15s}
 .edu-card:hover{border-color:var(--cyan)}
 .ec-name{font-family:var(--font-s);font-size:15px;font-weight:600;color:var(--fg-1);margin-bottom:6px}
 .ec-loc{font-family:var(--font-m);font-size:10px;letter-spacing:.12em;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
@@ -404,8 +406,8 @@ body.light .studio-row{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
 .pop-cnt{font-family:var(--font-m);font-size:10px;letter-spacing:.14em;color:var(--amber);margin-top:2px}
 .pop-list{max-height:200px;overflow-y:auto}
 .pop-job{
-  padding:9px 16px;border-bottom:1px solid var(--line-1);cursor:pointer;
-  transition:background .1s;
+  display:block;width:100%;padding:9px 16px;border:0;border-bottom:1px solid var(--line-1);
+  background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .1s;
 }
 .pop-job:last-child{border-bottom:none}
 .pop-job:hover{background:rgba(245,165,36,.04)}

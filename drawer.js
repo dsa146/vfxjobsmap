@@ -25,6 +25,7 @@ function openDrawer(jobId) {
   const relJobs = filtered.filter(x => x.s === j.s);
   elDr.tags.innerHTML = `
     <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
+    ${j.featured ? `<span class="jtag featured-pill">${t('job.featured')}</span>` : ''}
     <span class="jtag">${displayLevel(j.l)}</span>
     <span class="jtag">${tRemote(j.remote)}</span>`;
 
@@ -60,7 +61,7 @@ function openDrawer(jobId) {
     });
   };
 
-  const href = safeUrl(j.u, 'mailto:');
+  const href = contactUrl(j.u);
   if (href) {
     elDr.apply.onclick = () => window.open(href, '_blank', 'noopener');
     elDr.apply.style.opacity = '1'; elDr.apply.style.pointerEvents = '';

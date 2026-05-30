@@ -27,7 +27,7 @@ function makeIcon(status, count, idx = 0) {
 }
 
 function updateMap() {
-  const key = filtered.length + ':' + (filtered[0]?.id || '') + ':' + (filtered[filtered.length - 1]?.id || '');
+  const key = filtered.map(j => j.id).join('|');
   if (key === lastMapKey) return;
   lastMapKey = key;
   markerLayer.clearLayers();
@@ -49,7 +49,7 @@ function updateMap() {
 function buildPopup(city, jobs) {
   const rows = jobs.map(j => {
     const disc = DISC_MAP[j.disc];
-    return `<div class="pop-job" onclick="openDrawer('${j.id}')">
+    return `<button class="pop-job" onclick="openDrawer('${j.id}')">
       <div class="pop-job-title">${esc(j.t)}</div>
       <div class="pop-job-studio">${esc(j.s)}</div>
       <div class="pop-tags">
@@ -57,7 +57,7 @@ function buildPopup(city, jobs) {
         <span class="ptag">${displayLevel(j.l)}</span>
         <span class="ptag">${tRemote(j.remote)}</span>
       </div>
-    </div>`;
+    </button>`;
   }).join('');
   return `<div class="pop-head"><div class="pop-city">${esc(city)}</div><div class="pop-cnt">${t('app.positions', jobs.length)}</div></div><div class="pop-list">${rows}</div>`;
 }

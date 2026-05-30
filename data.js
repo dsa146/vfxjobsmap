@@ -48,6 +48,20 @@ function safeUrl(raw, fallbackProtocol) {
   }
 }
 
+function contactUrl(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return safeUrl(s);
+
+  const email = s.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  if (email) return safeUrl(email[0], 'mailto:');
+
+  const web = s.match(/(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s<>"']*)?/i);
+  if (web) return safeUrl(web[0].startsWith('www.') ? 'https://' + web[0] : web[0], 'https://');
+
+  return safeUrl(s);
+}
+
 // ── Date / age helpers ────────────────────────────────────────────────────
 function parseSheetDate(raw) {
   if (!raw) return null;
