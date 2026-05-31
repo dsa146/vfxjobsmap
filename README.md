@@ -7,14 +7,14 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 ## Features
 
 - **Interactive map** — Leaflet/CartoDB tiles, clustered pins color-coded by posting age
-- **Filter rail** — discipline chips, status, work mode, level, region, software stack, and free-text search
+- **Filter rail** — discipline chips, featured-only, status, work mode, level, region, software stack, and free-text search
 - **Job feed** — right-side panel sorted by featured status, then urgency (new → recent → active → ongoing)
 - **List view** — sortable table with all open roles, CSV export
 - **Studios view** — browse all studios and jump to their open roles
 - **Edu view** — education resources with searchable school cards; click a card to open a detail drawer with an embedded mini-map
 - **Links view** — curated industry websites (job boards and resources) in a sortable table; click any row to open the site
-- **Job drawer** — details panel with Apply Now, Save, and Share buttons
-- **Saved jobs** — persisted in `localStorage`, amber badge on bookmark icon
+- **Job drawer** — details panel with Apply Now, Save, Applied, and Share buttons
+- **My Jobs drawer** — saved and applied jobs in tabbed lists, persisted in `localStorage`
 - **New jobs notifications** — red badge, auto-marks seen after 2 s
 - **Light / dark mode** — smooth cross-fade via View Transitions API, applied to all map tiles including the edu mini-map
 - **HUD** — live counts: open roles, studios, countries, signal quality, local time with timezone
@@ -26,7 +26,7 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 | View | Description |
 |------|-------------|
 | Map | Interactive world map with job pins |
-| Filters | Discipline, status, work mode, level, region, software filters |
+| Filters | Discipline, featured-only, status, work mode, level, region, software filters |
 | Feed | Featured-first job cards sorted by urgency |
 | List | Sortable full table of filtered results with CSV export |
 | Studios | All studios with open role counts |

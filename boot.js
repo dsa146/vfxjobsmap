@@ -8,7 +8,9 @@ async function initData(attempt = 1) {
     JOBS = await fetchSheetJobs();
     const validKeys = new Set(JOBS.map(j => jobKey(j)));
     savedKeys.forEach(k => { if (!validKeys.has(k)) savedKeys.delete(k); });
+    appliedKeys.forEach(k => { if (!validKeys.has(k)) appliedKeys.delete(k); });
     persistSaved(); updateSaveBadge();
+    persistApplied();
     computeNewJobs();
     applyFilters();
     const sharedJob = new URLSearchParams(location.search).get('job');

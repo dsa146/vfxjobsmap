@@ -9,6 +9,7 @@ const FEED_PAGE_SIZE      = 30;
 let JOBS = [], dataLoadFailed = false;
 let jobsError = null, eduError = null, webError = null;
 let fDiscs = [], fSofts = [], fSoftRegexes = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fLevel = '', fQuery = '';
+let fFeaturedOnly = false;
 let selectedJob = null, filtered = [], lastMapKey = '';
 let feedPage = 1, feedObserver = null;
 
@@ -61,6 +62,8 @@ const elDr = {
   saveLabel:     document.getElementById('drawer-save-label'),
   saveIconOff:   document.getElementById('drawer-save-icon-off'),
   saveIconOn:    document.getElementById('drawer-save-icon-on'),
+  applied:       document.getElementById('drawer-applied'),
+  appliedLabel:  document.getElementById('drawer-applied-label'),
   share:         document.getElementById('drawer-share'),
   shareLabel:    document.getElementById('drawer-share-label'),
   apply:         document.getElementById('drawer-apply'),

@@ -93,6 +93,7 @@ setInterval(updateSig, SIG_INTERVAL_MS);
 document.getElementById('brand-home').addEventListener('click', e => {
   e.preventDefault();
   fQuery = ''; fDiscs = []; fSofts = []; fSoftRegexes = []; fStatus = 'all'; fRemote = 'Any'; fRegion = ''; fLevel = '';
+  fFeaturedOnly = false;
   document.getElementById('search').value = '';
   updateSearchClear();
   document.querySelectorAll('.disc-chip.on').forEach(b => {
@@ -103,6 +104,7 @@ document.getElementById('brand-home').addEventListener('click', e => {
   document.getElementById('remote-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
   document.getElementById('level-seg').querySelectorAll('.seg-item').forEach((b,i)  => b.classList.toggle('on', i===0));
   document.getElementById('region-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
+  syncFeaturedOnlyBtn();
   closeMobileSheet();
   applyFilters(); switchView('map');
 });
@@ -125,10 +127,10 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
 
 // -- CSV export --
 function exportCSV() {
-  const headers = ['ID','Title','Studio','City','Country','Work Mode','Level','Status','Posted','Contact','Software','Notes'];
+  const headers = ['ID','Title','Studio','City','Country','Work Mode','Level','Status','Featured','Saved','Applied','Posted','Contact','Software','Notes'];
   const csvRows = [
     headers.join(','),
-    ...filtered.map(j => [j.id,j.t,j.s,j.c,j.co,j.w,j.l,j.status,j.d,j.u,j.sw,j.n]
+    ...filtered.map(j => [j.id,j.t,j.s,j.c,j.co,j.w,j.l,j.status,j.featured?'yes':'',savedKeys.has(jobKey(j))?'yes':'',appliedKeys.has(jobKey(j))?'yes':'',j.d,j.u,j.sw,j.n]
       .map(v => `"${(v||'').replace(/"/g,'""')}"`)
       .join(','))
   ];

@@ -3,6 +3,7 @@ function applyFilters() {
   const fQueryLc = fQuery ? fQuery.toLowerCase() : '';
   filtered = JOBS.filter(j => {
     if (fDiscs.length && !fDiscs.includes(j.disc)) return false;
+    if (fFeaturedOnly && !j.featured) return false;
     if (fStatus !== 'all' && j.status !== fStatus) return false;
     if (fRemote !== 'Any' && j.remote !== fRemote) return false;
     if (fRegion && j.r !== fRegion) return false;
@@ -79,4 +80,20 @@ wireSegmented('status-seg', v => { fStatus = v; applyFilters(); });
 wireSegmented('remote-seg', v => { fRemote = v; applyFilters(); });
 wireSegmented('level-seg',  v => { fLevel  = v; applyFilters(); });
 wireSegmented('region-seg', v => { fRegion = v; applyFilters(); });
+
+// -- Featured-only filter --
+const featuredOnlyBtn = document.getElementById('featured-only');
+function syncFeaturedOnlyBtn() {
+  if (!featuredOnlyBtn) return;
+  featuredOnlyBtn.classList.toggle('on', fFeaturedOnly);
+  featuredOnlyBtn.setAttribute('aria-pressed', fFeaturedOnly ? 'true' : 'false');
+}
+if (featuredOnlyBtn) {
+  featuredOnlyBtn.setAttribute('aria-pressed', 'false');
+  featuredOnlyBtn.addEventListener('click', () => {
+    fFeaturedOnly = !fFeaturedOnly;
+    syncFeaturedOnlyBtn();
+    applyFilters();
+  });
+}
 

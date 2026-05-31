@@ -92,8 +92,8 @@
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
       <span class="topbar-badge" id="notif-badge" style="display:none">0</span>
     </button>
-    <button class="icon-btn" id="saved-btn" aria-label="Saved jobs">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    <button class="icon-btn" id="saved-btn" aria-label="My jobs">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>
       <span class="topbar-badge" id="save-badge" style="display:none;background:var(--amber);color:#1a1200">0</span>
     </button>
     <a class="primary-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSeXziY3GQ8N7bxM-GxwDoZ7AimguHru0105PLVQtNYygswIlw/viewform" target="_blank" rel="noopener" style="text-decoration:none" data-i18n="toolbar.submit">Submit a Job</a>
@@ -115,6 +115,14 @@
     <div class="f-section">
       <div class="f-section-head" data-i18n="rail.discipline">— Discipline</div>
       <div class="chip-wrap" id="disc-chips"></div>
+    </div>
+
+    <div class="f-section">
+      <div class="f-section-head" data-i18n="rail.featured">— Featured</div>
+      <button class="toggle-filter" id="featured-only">
+        <span class="toggle-box"></span>
+        <span data-i18n="filter.featured_only">Featured only</span>
+      </button>
     </div>
 
     <div class="f-section">
@@ -348,6 +356,10 @@
         <svg id="drawer-save-icon-on" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="1.8" style="display:none;color:var(--amber)"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         <span id="drawer-save-label" data-i18n="drawer.save">Save</span>
       </button>
+      <button class="ghost-btn-lg" id="drawer-applied">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg>
+        <span id="drawer-applied-label" data-i18n="drawer.mark_applied">Mark applied</span>
+      </button>
       <button class="ghost-btn-lg" id="drawer-share">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span id="drawer-share-label" data-i18n="drawer.share">Share</span>
@@ -371,11 +383,15 @@
 <!-- Saved Panel -->
 <div class="side-panel hidden" id="saved-panel">
   <div class="sp-head">
-    <span class="sp-title" data-i18n="panel.saved_title">— Saved Jobs</span>
+    <span class="sp-title" data-i18n="panel.my_jobs_title">— My Jobs</span>
     <span class="sp-count" id="saved-count"></span>
     <button class="sp-close" id="saved-close">
       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
+  </div>
+  <div class="sp-tabs" role="tablist" aria-label="My jobs">
+    <button class="sp-tab on" data-tab="saved" role="tab" aria-selected="true" data-i18n="track.saved">Saved</button>
+    <button class="sp-tab" data-tab="applied" role="tab" aria-selected="false" data-i18n="track.applied">Applied</button>
   </div>
   <div class="sp-body" id="saved-body"></div>
 </div>

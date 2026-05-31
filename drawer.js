@@ -49,7 +49,9 @@ function openDrawer(jobId) {
   };
 
   updateDrawerSaveState(j);
+  updateDrawerAppliedState(j);
   elDr.save.onclick  = () => toggleSaved(j);
+  elDr.applied.onclick = () => toggleApplied(j);
   elDr.share.onclick = () => {
     const url = location.origin + location.pathname + '?job=' + j.id;
     navigator.clipboard.writeText(url).then(() => {
