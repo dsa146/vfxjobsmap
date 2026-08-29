@@ -4,9 +4,10 @@ const map = L.map('map', {
   zoomControl: true, worldCopyJump: false,
   maxBounds: [[-90,-180],[90,180]], maxBoundsViscosity: 1.0,
 });
-const ATTR = '&copy; <a href="https://openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
-const tileDark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',  {attribution:ATTR,subdomains:'abcd',maxZoom:19});
-const tileLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {attribution:ATTR,subdomains:'abcd',maxZoom:19});
+const ATTR = '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
+const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const tileDark  = L.tileLayer(OSM_TILE_URL, { attribution:ATTR, maxZoom:19, className:'map-tiles-dark' });
+const tileLight = L.tileLayer(OSM_TILE_URL, { attribution:ATTR, maxZoom:19, className:'map-tiles-light' });
 tileDark.addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;

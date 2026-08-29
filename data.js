@@ -214,7 +214,7 @@ function parseGvizRows(rows) {
     return { s:studio, c:get(COL.city), co:get(COL.country), t:title,
              l:get(COL.level), w:get(COL.workMode), d:dateStr,
              r:COUNTRY_REGION[get(COL.country)] || get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes),
-             featured: featuredRaw === 1 || featuredRaw === '1' };
+             featured: featuredRaw === 1 || featuredRaw === '1' || featuredRaw === true || (featuredRaw != null && String(featuredRaw).toLowerCase() === 'true') };
   }).filter(Boolean).map((j, i) => {
     const date = parseSheetDate(j.d);
     const loc = j.c ? (j.co ? j.c + ', ' + j.co : j.c) : (j.co || '');

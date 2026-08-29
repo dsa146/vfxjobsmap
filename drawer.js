@@ -95,8 +95,6 @@ document.getElementById('drawer').addEventListener('click', e => e.stopPropagati
 const EDU_COLOR = '#2BC4D2';
 let eduMiniMap = null, eduMiniMarker = null, eduMiniTile = null;
 const elEduMapSection = document.getElementById('drawer-edu-map-section');
-const MINI_TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-const MINI_TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
 function getEduCoords(e) {
   if (!e.city && !e.country) return null;
@@ -105,9 +103,9 @@ function getEduCoords(e) {
 
 function syncEduMiniTile() {
   if (!eduMiniMap) return;
-  const url = document.body.classList.contains('light') ? MINI_TILE_LIGHT : MINI_TILE_DARK;
+  const tileClass = document.body.classList.contains('light') ? 'map-tiles-light' : 'map-tiles-dark';
   if (eduMiniTile) eduMiniMap.removeLayer(eduMiniTile);
-  eduMiniTile = L.tileLayer(url, { subdomains: 'abcd', maxZoom: 19 }).addTo(eduMiniMap);
+  eduMiniTile = L.tileLayer(OSM_TILE_URL, { maxZoom: 19, className: tileClass }).addTo(eduMiniMap);
 }
 
 function updateEduMiniMap(ll) {

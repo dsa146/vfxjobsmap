@@ -377,6 +377,8 @@ body.light .web-row:hover{background:rgba(0,0,0,.03)}
 
 /* Leaflet overrides */
 .leaflet-container{background:#07070A!important}
+.map-tiles-dark{filter:invert(1) hue-rotate(180deg) brightness(.62) contrast(.95) saturate(.7)}
+.map-tiles-light{filter:none}
 .leaflet-control-zoom{border:1px solid var(--line-2)!important;border-radius:0!important;margin:16px!important}
 .leaflet-control-zoom a{
   background:rgba(14,14,18,.9)!important;border:none!important;border-bottom:1px solid var(--line-2)!important;

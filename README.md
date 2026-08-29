@@ -6,7 +6,7 @@ Live VFX job postings from around the world, plotted on an interactive map with 
 
 ## Features
 
-- **Interactive map** — Leaflet/CartoDB tiles, clustered pins color-coded by posting age
+- **Interactive map** — Leaflet/OpenStreetMap tiles, clustered pins color-coded by posting age
 - **Filter rail** — discipline chips, featured-only, status, work mode, level, region, software stack, and free-text search
 - **Job feed** — right-side panel sorted by featured status, then urgency (new → recent → active → ongoing)
 - **List view** — sortable table with all open roles, CSV export
@@ -142,7 +142,7 @@ Scripts are loaded in dependency order from `index.html`. All share the global s
 ## Tech stack
 
 - [Leaflet 1.9](https://leafletjs.com/) — map rendering and edu mini-map
-- [CartoDB Basemaps](https://github.com/CartoDB/basemap-styles) — dark/light tiles
+- [OpenStreetMap](https://www.openstreetmap.org/copyright) — keyless map tiles with CSS dark-mode treatment
 - [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) + [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) + [Anton](https://fonts.google.com/specimen/Anton) — typography
 - Vanilla JS / CSS — no framework, no build tool
 
