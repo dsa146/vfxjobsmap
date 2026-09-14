@@ -563,6 +563,10 @@ const CC = {
 
   // ── Disambiguated city|country keys ───────────────────────────────────
   // These override the plain city lookup for ambiguous names.
+  // Worcester, England: https://www.getthedata.com/worcester/where-is-worcester
+  "Worcester|England":[52.1929,-2.2211],
+  "Worcester|United Kingdom":[52.1929,-2.2211],
+  "Worcester|UK":[52.1929,-2.2211],
   "St. Petersburg|United States":[27.7676,-82.6403],
   "Cambridge|United States":[42.3736,-71.1097],
   "Cambridge|Canada":[43.3616,-80.3144],
