@@ -7,3 +7,6 @@ brand-design-md/
 # Dev utilities
 generate-coords.js
 assets/og-preview.html
+
+# Browser test screenshots and reports
+tests/artifacts/

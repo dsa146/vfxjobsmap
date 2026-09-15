@@ -37,7 +37,7 @@ function renderListView() {
       <div class="list-studio">${esc(j.s)}</div>
       <div class="list-loc">${esc(j.loc)}</div>
       <div class="list-loc">${tRemote(j.remote)}</div>
-      <div class="list-loc">${displayLevel(j.l)}</div>
+      <div class="list-loc">${esc(displayLevel(j.l))}</div>
       <div style="display:flex;align-items:center;gap:6px">
         <div class="list-dot" style="background:${sc};box-shadow:0 0 6px ${sc}"></div>
         <span class="list-badge" style="color:${sc};border-color:${sc}20">${t('status.' + j.status)}</span>

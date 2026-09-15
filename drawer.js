@@ -26,11 +26,12 @@ function openDrawer(jobId) {
   elDr.tags.innerHTML = `
     <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
     ${j.featured ? `<span class="jtag featured-pill">${t('job.featured')}</span>` : ''}
-    <span class="jtag">${displayLevel(j.l)}</span>
+    <span class="jtag">${esc(displayLevel(j.l))}</span>
     <span class="jtag">${tRemote(j.remote)}</span>`;
 
-  const postDate = new Date(Date.now() - j.postedH * 3600000);
-  elDr.posted.textContent = postDate.toLocaleDateString(LANG, { year: 'numeric', month: 'short', day: 'numeric' });
+  elDr.posted.textContent = j.postedDate
+    ? j.postedDate.toLocaleDateString(LANG, { year: 'numeric', month: 'short', day: 'numeric' })
+    : '—';
   elDr.mode.textContent   = tRemote(j.remote);
   elDr.level.textContent  = displayLevel(j.l);
   elDr.sname.textContent  = j.s;

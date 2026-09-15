@@ -705,7 +705,8 @@ let LANG = (function detectLang() {
   const stored = localStorage.getItem('vfxmap_lang');
   if (stored && LOCALES[stored]) return stored;
   const full  = (navigator.language || 'en').toLowerCase();
-  if (LOCALES[full]) return full;
+  const match = Object.keys(LOCALES).find(code => code.toLowerCase() === full);
+  if (match) return match;
   const short = full.slice(0, 2);
   return LOCALES[short] ? short : 'en';
 })();

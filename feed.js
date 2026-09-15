@@ -35,7 +35,7 @@ function makeCardHTML(j) {
     <div class="jcard-tags">
       <span class="jtag-disc" style="color:${disc?.color};border-color:${disc?.color}">${t('disc.' + j.disc)}</span>
       ${j.featured ? `<span class="jtag featured-pill">${t('job.featured')}</span>` : ''}
-      <span class="jtag">${displayLevel(j.l)}</span>
+      <span class="jtag">${esc(displayLevel(j.l))}</span>
       <span class="jtag">${tRemote(j.remote)}</span>
     </div>
   </button>`;

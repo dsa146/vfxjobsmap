@@ -55,7 +55,7 @@ function buildPopup(city, jobs) {
       <div class="pop-job-studio">${esc(j.s)}</div>
       <div class="pop-tags">
         <span class="ptag" style="color:${disc?.color};border-color:${disc?.color}44">${t('disc.' + j.disc)}</span>
-        <span class="ptag">${displayLevel(j.l)}</span>
+        <span class="ptag">${esc(displayLevel(j.l))}</span>
         <span class="ptag">${tRemote(j.remote)}</span>
       </div>
     </button>`;
