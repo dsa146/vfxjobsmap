@@ -96,6 +96,73 @@ async function check(name, action) {
       } finally { await s.context.close(); }
     });
 
+    for (const blockedReads of [false, true]) {
+      await check(`Storage ${blockedReads ? 'access denied' : 'quota exceeded'} keeps the app usable`, async () => {
+        const s = await session();
+        try {
+          await s.context.addInitScript(blockReads => {
+            Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); };
+            if (blockReads) Storage.prototype.getItem = () => { throw new DOMException('Denied', 'SecurityError'); };
+          }, blockedReads);
+          await s.page.goto(base, { waitUntil: 'domcontentloaded' });
+          await s.page.waitForFunction(() => typeof JOBS !== 'undefined' && JOBS.length === 45);
+          assert.equal(await s.page.evaluate(() => dataLoadFailed), false);
+          assert.equal(s.requests.jobs, 1);
+          await s.page.locator('.jcard').first().click();
+          await s.page.locator('#drawer-applied').click();
+          assert.equal(await s.page.evaluate(() => appliedKeys.size), 1);
+          await s.page.locator('#drawer-close').click();
+          await s.page.locator('#theme-toggle').click();
+          assert.deepEqual(s.errors, []);
+        } finally { await s.context.close(); }
+      });
+    }
+
+    await check('Legacy bookmarks migrate, old links resolve, and delisted applications persist', async () => {
+      const s = await session();
+      try {
+        await s.context.addInitScript(() => {
+          if (!localStorage.getItem('vfxmap_jobs_v2')) {
+            const key = 'Review Studio\x00FX Artist 00\x00London, England';
+            localStorage.setItem('vfxmap_saved_v1', JSON.stringify([key]));
+            localStorage.setItem('vfxmap_applied_v1', JSON.stringify([key]));
+          }
+        });
+        await s.page.goto(base, { waitUntil: 'domcontentloaded' });
+        await s.page.waitForFunction(() => typeof JOBS !== 'undefined' && JOBS.length === 45);
+        const oldLink = await s.page.evaluate(() => JOBS[0].legacyHashId);
+        await s.page.goto(base + '?job=' + oldLink, { waitUntil: 'domcontentloaded' });
+        await s.page.locator('#drawer-backdrop:not(.hidden)').waitFor();
+        assert.equal(await s.page.locator('#drawer-title').textContent(), 'FX Artist 00');
+        assert.equal(await s.page.locator('#drawer-save-label').textContent(), 'Saved');
+        assert.equal(await s.page.evaluate(() => appliedKeys.has(JOBS[0].id)), true);
+        await s.page.locator('#drawer-close').click();
+        await s.context.route('https://docs.google.com/spreadsheets/**', async route => {
+          const url = new URL(route.request().url());
+          const callback = url.searchParams.get('tqx').match(/responseHandler:([^;]+)/)[1];
+          await route.fulfill({ contentType: 'text/javascript', body: `${callback}(${JSON.stringify({ table: { rows: rows.slice(1) } })});` });
+        });
+        await s.page.reload({ waitUntil: 'domcontentloaded' });
+        await s.page.waitForFunction(() => JOBS.length === 44);
+        await s.page.locator('#saved-btn').click();
+        await s.page.locator('.sp-tab[data-tab="applied"]').click();
+        assert.match(await s.page.locator('#saved-body').textContent(), /No longer listed/);
+        await s.page.locator('#saved-body .sp-saved-row').click();
+        assert.equal(await s.page.locator('#drawer-title').textContent(), 'FX Artist 00');
+        assert.equal(await s.page.locator('#drawer-apply').isDisabled(), true);
+        await s.page.reload({ waitUntil: 'domcontentloaded' });
+        await s.page.locator('#drawer-backdrop:not(.hidden)').waitFor();
+        assert.match(await s.page.locator('#drawer-eye').textContent(), /No longer listed/);
+        await s.page.locator('#drawer-close').click();
+        await s.page.locator('#saved-btn').click();
+        await s.page.locator('.sp-tab[data-tab="applied"]').click();
+        await s.page.locator('#saved-body .sp-rm').click();
+        assert.equal(await s.page.locator('#saved-body .sp-saved-row').count(), 0);
+        assert.equal(await s.page.evaluate(() => savedKeys.size), 1);
+        assert.deepEqual(s.errors, []);
+      } finally { await s.context.close(); }
+    });
+
     const desktop = await session();
     const { page } = desktop;
     await page.goto(base, { waitUntil: 'domcontentloaded' });
@@ -117,6 +184,31 @@ async function check(name, action) {
       await page.locator('#featured-only').click();
       assert.equal(await page.locator('.jcard').count(), 1);
       await page.locator('#brand-home').click();
+    });
+
+    await check('Filter reset synchronizes selected styles, ARIA and derived software predicates', async () => {
+      await page.locator('.disc-chip').filter({ hasText: 'FX / Sim' }).click();
+      await page.locator('.soft-chip').filter({ hasText: 'Houdini' }).click();
+      await page.locator('#status-seg [data-v="new"]').click();
+      await page.locator('#remote-seg [data-v="Remote"]').click();
+      await page.locator('#level-seg [data-v="senior"]').click();
+      await page.locator('#featured-only').click();
+      await page.locator('#search').fill('no such role');
+      await page.locator('#brand-home').click();
+      await page.waitForTimeout(250);
+      assert.equal(await page.evaluate(() => filtered.length), 45);
+      assert.equal(await page.locator('.disc-chip.on, .soft-chip.on').count(), 0);
+      assert.equal(await page.locator('.disc-chip[aria-pressed="true"], .soft-chip[aria-pressed="true"]').count(), 0);
+      assert.equal(await page.locator('#featured-only').getAttribute('aria-pressed'), 'false');
+      for (const [id, value] of Object.entries({ 'status-seg': 'all', 'remote-seg': 'Any', 'level-seg': '', 'region-seg': '' })) {
+        const selected = page.locator(`#${id} [aria-selected="true"]`);
+        assert.equal(await selected.count(), 1); assert.equal(await selected.getAttribute('data-v'), value);
+        assert.equal(await selected.evaluate(el => el.classList.contains('on')), true);
+      }
+      await page.locator('.soft-chip').filter({ hasText: 'Houdini' }).click();
+      assert.equal(await page.evaluate(() => filtered.length), 45);
+      await page.locator('.soft-chip').filter({ hasText: 'Houdini' }).click();
+      assert.equal(await page.evaluate(() => fSofts.length), 0);
     });
 
     await check('HTML injection blocked in feed, list, popup and drawer; original posted year shown', async () => {

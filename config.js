@@ -7,6 +7,7 @@ const WEB_COL   = { name:2, url:4, notes:6 };
 
 // Column indices in the gviz response (0-based)
 const COL = {
+  id:       null, // Set to a column index when the sheet has immutable posting IDs.
   studio:   0,
   city:     2,
   country:  6,

@@ -92,19 +92,10 @@ setInterval(updateSig, SIG_INTERVAL_MS);
 // -- Brand home --
 document.getElementById('brand-home').addEventListener('click', e => {
   e.preventDefault();
-  fQuery = ''; fDiscs = []; fSofts = []; fSoftRegexes = []; fStatus = 'all'; fRemote = 'Any'; fRegion = ''; fLevel = '';
-  fFeaturedOnly = false;
+  clearTimeout(searchTimer);
+  resetFilters();
   document.getElementById('search').value = '';
   updateSearchClear();
-  document.querySelectorAll('.disc-chip.on').forEach(b => {
-    b.classList.remove('on'); b.style.borderColor=''; b.style.color=''; b.style.background='';
-  });
-  document.querySelectorAll('.soft-chip.on').forEach(b => b.classList.remove('on'));
-  document.getElementById('status-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
-  document.getElementById('remote-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
-  document.getElementById('level-seg').querySelectorAll('.seg-item').forEach((b,i)  => b.classList.toggle('on', i===0));
-  document.getElementById('region-seg').querySelectorAll('.seg-item').forEach((b,i) => b.classList.toggle('on', i===0));
-  syncFeaturedOnlyBtn();
   closeMobileSheet();
   applyFilters(); switchView('map');
 });
@@ -116,7 +107,7 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
     document.body.classList.toggle('light');
     document.getElementById('theme-icon-dark').style.display  = goingLight ? 'none' : '';
     document.getElementById('theme-icon-light').style.display = goingLight ? '' : 'none';
-    localStorage.setItem('vfxmap_theme', goingLight ? 'light' : 'dark');
+    writeStorage('vfxmap_theme', goingLight ? 'light' : 'dark');
     if (goingLight) { map.removeLayer(tileDark);  tileLight.addTo(map); }
     else            { map.removeLayer(tileLight); tileDark.addTo(map);  }
     syncEduMiniTile();
@@ -145,7 +136,7 @@ document.getElementById('csv-export').addEventListener('click', exportCSV);
 function setLang(code) {
   if (!LOCALES[code]) return;
   LANG = code;
-  localStorage.setItem('vfxmap_lang', code);
+  writeStorage('vfxmap_lang', code);
   document.documentElement.lang = code;
   closePanels();
   applyI18n(); applyLegendLabels(); syncSearchPlaceholder();

@@ -25,11 +25,29 @@ function hashString(s) {
   return (h >>> 0).toString(36).toUpperCase().padStart(7, '0');
 }
 
-function stableJobId(j) {
+function legacyJobId(j) {
   const key = [j.s, j.t, j.loc, j.d, j.u]
     .map(v => String(v || '').trim().toLowerCase().replace(/\s+/g, ' '))
     .join('|');
   return 'JOB-' + hashString(key);
+}
+
+function stableJobId(j) {
+  const date = j.postedDate;
+  const dateKey = date && !isNaN(date.getTime())
+    ? [date.getFullYear(), date.getMonth() + 1, date.getDate()].join('-') : j.d;
+  const normalize = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const key = j.sourceId
+    ? JSON.stringify(['source', SHEET_ID, j.sourceId])
+    : JSON.stringify(['posting', ...[j.s, j.t, j.loc, dateKey, j.u].map(normalize)]);
+  return 'JOB-V2-' + hashString(key) + hashString('identity:' + key);
+}
+
+function findJob(id) {
+  // Exact identities always take priority over ambiguous historical aliases.
+  return JOBS.find(j => j.id === id)
+    || (typeof findStoredJob === 'function' ? findStoredJob(id) : null)
+    || JOBS.find(j => j.legacyHashId === id || j.legacyId === id);
 }
 
 function safeUrl(raw, fallbackProtocol) {
@@ -210,7 +228,7 @@ function fetchGviz(gid, cbName) {
 }
 
 function parseGvizRows(rows) {
-  const seenIds = new Map();
+  const seenIds = new Map(), seenLegacyIds = new Map();
   return rows.map(row => {
     const c = row.c;
     const get = i => (c[i] && c[i].v != null) ? String(c[i].v).trim() : '';
@@ -221,7 +239,8 @@ function parseGvizRows(rows) {
     // Keep the existing display/hash field so previously shared job IDs still resolve.
     const dateStr = dateRaw ? String(dateRaw).replace(/,?\s*\d{4}$/, '').trim() : '';
     const featuredRaw = c[COL.featured]?.v;
-    return { s:studio, c:get(COL.city), co:get(COL.country), t:title,
+    return { sourceId: Number.isInteger(COL.id) ? get(COL.id) : '',
+             s:studio, c:get(COL.city), co:get(COL.country), t:title,
              l:get(COL.level), w:get(COL.workMode), d:dateStr, postedDate,
              r:COUNTRY_REGION[get(COL.country)] || get(COL.region), u:get(COL.contact), sw:get(COL.software), n:get(COL.notes),
              featured: featuredRaw === 1 || featuredRaw === '1' || featuredRaw === true || (featuredRaw != null && String(featuredRaw).toLowerCase() === 'true') };
@@ -231,12 +250,16 @@ function parseGvizRows(rows) {
     const baseId = stableJobId({...j, loc});
     const seenCount = (seenIds.get(baseId) || 0) + 1;
     seenIds.set(baseId, seenCount);
+    const legacyBase = legacyJobId({...j, loc});
+    const legacyCount = (seenLegacyIds.get(legacyBase) || 0) + 1;
+    seenLegacyIds.set(legacyBase, legacyCount);
     const legacyId = 'JOB-' + String(i+1).padStart(4,'0');
     const displayId = 'JOB ' + String(i+1).padStart(4,'0');
     const base = {
       ...j,
       id: seenCount === 1 ? baseId : `${baseId}-${seenCount}`,
       legacyId,
+      legacyHashId: legacyCount === 1 ? legacyBase : `${legacyBase}-${legacyCount}`,
       displayId,
       disc: getDisc(j.t), status: getStatus(date), postedH: getPostedH(date),
       remote: getRemote(j.w), ll: getCoords(j),

@@ -700,9 +700,16 @@ const LOCALES = {
   },
 };
 
+const archivedLabels = {
+  en: 'No longer listed', fr: 'Annonce retirée', de: 'Nicht mehr gelistet',
+  ja: '掲載終了', ko: '게시 종료', zh: '已不在当前列表', 'zh-TW': '已不在目前列表',
+  es: 'Ya no está publicada', ru: 'Больше не опубликована',
+};
+Object.entries(archivedLabels).forEach(([lang, label]) => { LOCALES[lang]['job.archived'] = label; });
+
 // ── Core ───────────────────────────────────────────────────────────────────
 let LANG = (function detectLang() {
-  const stored = localStorage.getItem('vfxmap_lang');
+  const stored = readStorage('vfxmap_lang');
   if (stored && LOCALES[stored]) return stored;
   const full  = (navigator.language || 'en').toLowerCase();
   const match = Object.keys(LOCALES).find(code => code.toLowerCase() === full);

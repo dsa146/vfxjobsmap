@@ -180,14 +180,15 @@ elWebColBtns.forEach(btn => {
 function renderStudiosView() {
   if (!studiosDirty) return;
   studiosDirty = false;
-  const studioMap = {};
+  const studioMap = new Map();
   filtered.forEach(j => {
-    if (!studioMap[j.s]) studioMap[j.s] = {name:j.s, locs:new Set(), roles:[], jobs:[]};
-    studioMap[j.s].locs.add(j.loc);
-    studioMap[j.s].roles.push(j.t);
-    studioMap[j.s].jobs.push(j);
+    if (!studioMap.has(j.s)) studioMap.set(j.s, {name:j.s, locs:new Set(), roles:[], jobs:[]});
+    const studio = studioMap.get(j.s);
+    studio.locs.add(j.loc);
+    studio.roles.push(j.t);
+    studio.jobs.push(j);
   });
-  const studios = Object.values(studioMap).sort((a,b) => b.jobs.length - a.jobs.length);
+  const studios = [...studioMap.values()].sort((a,b) => b.jobs.length - a.jobs.length);
   elStudiosBody.innerHTML = studios.map(st => {
     const topRoles = [...new Set(st.roles)].slice(0,4);
     const locs = [...st.locs].slice(0,2).join(' · ');

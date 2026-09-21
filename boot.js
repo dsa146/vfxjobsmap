@@ -6,25 +6,24 @@ async function initData(attempt = 1) {
     : `<div style="padding:24px 16px;color:#555;font-size:12px;font-family:monospace;text-align:center">${t('app.loading', attempt)}</div>`;
   try {
     JOBS = await fetchSheetJobs();
-    const validKeys = new Set(JOBS.map(j => jobKey(j)));
-    savedKeys.forEach(k => { if (!validKeys.has(k)) savedKeys.delete(k); });
-    appliedKeys.forEach(k => { if (!validKeys.has(k)) appliedKeys.delete(k); });
-    persistSaved(); updateSaveBadge();
-    persistApplied();
-    computeNewJobs();
-    applyFilters();
-    const sharedJob = new URLSearchParams(location.search).get('job');
-    if (sharedJob && JOBS.find(j => j.id === sharedJob || j.legacyId === sharedJob)) openDrawer(sharedJob);
   } catch(e) {
     console.error('Sheet fetch failed (attempt ' + attempt + '):', e);
     if (attempt < FETCH_MAX_RETRIES) { setTimeout(() => initData(attempt + 1), FETCH_RETRY_MS); return; }
     dataLoadFailed = true; jobsError = e.message;
     renderFetchError(elFeedList, e.message, 'initData()');
+    return;
   }
+  // Only fetching/parsing failures trigger network retries.
+  reconcileJobHistory();
+  updateSaveBadge();
+  computeNewJobs();
+  applyFilters();
+  const sharedJob = new URLSearchParams(location.search).get('job');
+  if (sharedJob && findJob(sharedJob)) openDrawer(sharedJob);
 }
 
 (function initTheme() {
-  const stored = localStorage.getItem('vfxmap_theme');
+  const stored = readStorage('vfxmap_theme');
   const preferLight = stored ? stored === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
   if (preferLight) {
     document.body.classList.add('light');

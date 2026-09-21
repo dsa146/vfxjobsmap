@@ -28,9 +28,9 @@ function makeIcon(status, count, idx = 0) {
 }
 
 function updateMap() {
-  const key = filtered.map(j => j.id).join('|');
+  const key = JSON.stringify([LANG, fLevel, filtered.map(j =>
+    [j.id, j.ll, j.loc, j.t, j.s, j.disc, j.l, j.remote, j.status])]);
   if (key === lastMapKey) return;
-  lastMapKey = key;
   markerLayer.clearLayers();
   const groups = {};
   filtered.forEach(j => {
@@ -45,6 +45,7 @@ function updateMap() {
     m.bindPopup(buildPopup(g.label, g.jobs), {maxWidth:280, className:''});
     markerLayer.addLayer(m);
   });
+  lastMapKey = key;
 }
 
 function buildPopup(city, jobs) {

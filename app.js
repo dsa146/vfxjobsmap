@@ -8,7 +8,7 @@ const FEED_PAGE_SIZE      = 30;
 // -- App state --
 let JOBS = [], dataLoadFailed = false;
 let jobsError = null, eduError = null, webError = null;
-let fDiscs = [], fSofts = [], fSoftRegexes = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fLevel = '', fQuery = '';
+let fDiscs = [], fSofts = [], fStatus = 'all', fRemote = 'Any', fRegion = '', fLevel = '', fQuery = '';
 let fFeaturedOnly = false;
 let selectedJob = null, filtered = [], lastMapKey = '';
 let feedPage = 1, feedObserver = null;

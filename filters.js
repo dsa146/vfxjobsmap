@@ -1,6 +1,8 @@
 // -- Filters --
 function applyFilters() {
+  syncFilterControls();
   const fQueryLc = fQuery ? fQuery.toLowerCase() : '';
+  const softRegexes = fSofts.map(swRegex);
   filtered = JOBS.filter(j => {
     if (fDiscs.length && !fDiscs.includes(j.disc)) return false;
     if (fFeaturedOnly && !j.featured) return false;
@@ -8,7 +10,7 @@ function applyFilters() {
     if (fRemote !== 'Any' && j.remote !== fRemote) return false;
     if (fRegion && j.r !== fRegion) return false;
     if (fLevel && !j.l.split(/[,\/]/).some(p => normalizeLevel(p.trim()) === fLevel)) return false;
-    if (fSoftRegexes.length && !fSoftRegexes.some(re => re.test(j._hay))) return false;
+    if (softRegexes.length && !softRegexes.some(re => re.test(j._hay))) return false;
     if (fQueryLc && !j._search.includes(fQueryLc)) return false;
     return true;
   });
@@ -23,21 +25,11 @@ const chipWrap = document.getElementById('disc-chips');
 DISCS.forEach(d => {
   const btn = document.createElement('button');
   btn.className = 'disc-chip';
+  btn.dataset.disc = d.id;
   btn.setAttribute('aria-pressed', 'false');
   btn.innerHTML = `<span class="chip-dot" style="background:${d.color}"></span><span data-i18n="disc.${d.id}">${t('disc.' + d.id)}</span>`;
   btn.onclick = () => {
-    if (fDiscs.includes(d.id)) {
-      fDiscs = fDiscs.filter(x => x !== d.id);
-      btn.classList.remove('on');
-      btn.setAttribute('aria-pressed', 'false');
-      btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = '';
-    } else {
-      fDiscs.push(d.id);
-      btn.classList.add('on');
-      btn.setAttribute('aria-pressed', 'true');
-      btn.style.borderColor = d.color; btn.style.color = d.color;
-      btn.style.background  = hexRgba(d.color, .08);
-    }
+    fDiscs = toggleFilterValue(fDiscs, d.id);
     applyFilters();
   };
   chipWrap.appendChild(btn);
@@ -45,19 +37,10 @@ DISCS.forEach(d => {
 
 // -- Software chips --
 document.querySelectorAll('.soft-chip').forEach(btn => {
+  btn.dataset.software = btn.textContent.trim().toLowerCase();
   btn.setAttribute('aria-pressed', 'false');
   btn.onclick = () => {
-    const sw = btn.textContent.trim().toLowerCase();
-    if (fSofts.includes(sw)) {
-      const i = fSofts.indexOf(sw);
-      fSofts.splice(i, 1); fSoftRegexes.splice(i, 1);
-      btn.classList.remove('on');
-      btn.setAttribute('aria-pressed', 'false');
-    } else {
-      fSofts.push(sw); fSoftRegexes.push(swRegex(sw));
-      btn.classList.add('on');
-      btn.setAttribute('aria-pressed', 'true');
-    }
+    fSofts = toggleFilterValue(fSofts, btn.dataset.software);
     applyFilters();
   };
 });
@@ -69,9 +52,6 @@ function wireSegmented(id, onChange) {
     btn.setAttribute('role', 'option');
     btn.setAttribute('aria-selected', btn.classList.contains('on') ? 'true' : 'false');
     btn.onclick = () => {
-      btns.forEach(b => { b.classList.remove('on'); b.setAttribute('aria-selected', 'false'); });
-      btn.classList.add('on');
-      btn.setAttribute('aria-selected', 'true');
       onChange(btn.dataset.v);
     };
   });
@@ -92,8 +72,41 @@ if (featuredOnlyBtn) {
   featuredOnlyBtn.setAttribute('aria-pressed', 'false');
   featuredOnlyBtn.addEventListener('click', () => {
     fFeaturedOnly = !fFeaturedOnly;
-    syncFeaturedOnlyBtn();
     applyFilters();
   });
+}
+
+function toggleFilterValue(values, value) {
+  return values.includes(value) ? values.filter(item => item !== value) : [...values, value];
+}
+
+function syncFilterControls() {
+  chipWrap.querySelectorAll('.disc-chip').forEach(btn => {
+    const on = fDiscs.includes(btn.dataset.disc), color = DISC_MAP[btn.dataset.disc].color;
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.style.borderColor = on ? color : '';
+    btn.style.color = on ? color : '';
+    btn.style.background = on ? hexRgba(color, .08) : '';
+  });
+  document.querySelectorAll('.soft-chip').forEach(btn => {
+    const on = fSofts.includes(btn.dataset.software);
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-pressed', String(on));
+  });
+  for (const [id, value] of Object.entries({ 'status-seg': fStatus, 'remote-seg': fRemote, 'level-seg': fLevel, 'region-seg': fRegion })) {
+    document.getElementById(id).querySelectorAll('.seg-item').forEach(btn => {
+      const on = btn.dataset.v === value;
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-selected', String(on));
+    });
+  }
+  syncFeaturedOnlyBtn();
+}
+
+function resetFilters() {
+  fQuery = ''; fDiscs = []; fSofts = []; fStatus = 'all';
+  fRemote = 'Any'; fRegion = ''; fLevel = ''; fFeaturedOnly = false;
+  syncFilterControls();
 }
 

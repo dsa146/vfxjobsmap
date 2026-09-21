@@ -22,8 +22,10 @@ then intercepts sheet requests with fixtures for repeatable desktop and mobile
 interaction checks. Leaflet, fonts and map tiles use their actual external hosts;
 network access is required. Analytics requests are suppressed during testing.
 
-The four regression cases, filtering, pagination, saved/applied state, deep links,
-CSV downloads, theme, navigation and mobile layouts are covered. Mobile tests use
+Regression coverage includes full-year/source IDs, legacy history migration,
+delisted snapshots, blocked storage, map cache dependencies and prototype-name studio
+grouping. Browser checks also exercise filter reset styles/ARIA, old deep links,
+archived drawers, pagination, CSV downloads, theme, navigation and mobile layouts. Mobile tests use
 Chromium device emulation, not physical devices or Safari.
 
 Screenshots and the JSON report are saved under `tests/artifacts/` (Git-ignored).

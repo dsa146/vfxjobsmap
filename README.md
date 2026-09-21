@@ -97,6 +97,27 @@ All data is pulled from a public Google Sheet via JSONP (compatible with `file:/
 | 4 | URL |
 | 6 | Notes |
 
+## Saved jobs and posting IDs
+
+Saved/applied jobs now share the same posting ID as links and exports. A single
+`vfxmap_jobs_v2` localStorage record stores selections and snapshots, so a job removed
+from the sheet remains available in My Jobs. Archived entries show their retained
+details and can be removed; Apply and Share are disabled for those entries.
+
+Existing v1 records migrate when they match exactly one current posting. Unmatched
+or ambiguous records retain the old studio/title/location information rather than
+being discarded or later attached to a repost. The old v1 data is left intact as a
+migration fallback; previously deleted history cannot be recovered. If browser
+storage is unavailable, the app still loads and selections work for the current
+session, but cannot be persisted across reloads.
+
+Set `COL.id` in `config.js` to an immutable source ID column when one is available.
+The current sheet has none configured, so IDs derive from studio, title, location,
+the full posting date (including year), and contact. Editing those identity fields
+can change an ID; identical postings cannot be distinguished reliably without a
+source ID. Old hash and positional (`JOB-0001`) links remain recognized for current
+rows, with their original ambiguity after row reordering or historical collisions.
+
 ## Running locally
 
 No build step. Just open `index.html` in a browser:
@@ -122,6 +143,7 @@ vfxjobsmap/
 |-- style.css           # All styles (dark/light themes, responsive layout)
 |-- config.js           # Sheet IDs, column maps, disciplines, status constants
 |-- coords.js           # City to lat/lng lookup table (CC and CO_LL objects)
+|-- storage-utils.js    # Non-throwing optional browser storage access
 |-- i18n.js             # Locale strings and language detection
 |-- data.js             # Fetch constants, utilities, date helpers, sheet fetch/parse
 |-- storage.js          # Saved jobs and notifications (localStorage, panels)

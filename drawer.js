@@ -1,7 +1,7 @@
 // -- Drawer --
 function openDrawer(jobId) {
   map.closePopup();
-  const j = JOBS.find(x => x.id === jobId || x.legacyId === jobId);
+  const j = findJob(jobId);
   if (!j) return;
   elDr.drawer.classList.remove('drawer--edu');
   elEduMapSection.style.display = 'none';
@@ -12,9 +12,9 @@ function openDrawer(jobId) {
 
   elDr.eye.innerHTML = `
     <span class="eye-dot" style="background:${sc};box-shadow:0 0 8px ${sc}"></span>
-    <span style="color:${sc};text-transform:uppercase">${t('status.' + j.status)}</span>
+    <span style="color:${sc};text-transform:uppercase">${j.archived ? t('job.archived') : t('status.' + j.status)}</span>
     <span class="eye-sep">·</span>
-    <span>${j.displayId || j.legacyId || j.id} · ${t('drawer.posted').toUpperCase()} ${fmtAge(j.postedH).toUpperCase()}</span>`;
+    <span>${j.displayId || j.legacyId || j.id}${j.postedDate || !j.archived ? ` · ${t('drawer.posted').toUpperCase()} ${fmtAge(j.postedH).toUpperCase()}` : ''}</span>`;
 
   elDr.title.textContent  = j.t;
   elDr.studio.textContent = j.s;
@@ -53,6 +53,7 @@ function openDrawer(jobId) {
   updateDrawerAppliedState(j);
   elDr.save.onclick  = () => toggleSaved(j);
   elDr.applied.onclick = () => toggleApplied(j);
+  elDr.share.disabled = !!j.archived;
   elDr.share.onclick = () => {
     const url = location.origin + location.pathname + '?job=' + j.id;
     navigator.clipboard.writeText(url).then(() => {
@@ -64,7 +65,8 @@ function openDrawer(jobId) {
     });
   };
 
-  const href = contactUrl(j.u);
+  const href = j.archived ? '' : contactUrl(j.u);
+  elDr.apply.disabled = !href;
   if (href) {
     elDr.apply.onclick = () => window.open(href, '_blank', 'noopener');
     elDr.apply.style.opacity = '1'; elDr.apply.style.pointerEvents = '';
@@ -72,7 +74,7 @@ function openDrawer(jobId) {
   } else {
     elDr.apply.onclick = null;
     elDr.apply.style.opacity = '0.4'; elDr.apply.style.pointerEvents = 'none';
-    elDr.apply.title = t('drawer.no_contact');
+    elDr.apply.title = t(j.archived ? 'job.archived' : 'drawer.no_contact');
   }
 
   elDr.backdrop.classList.remove('hidden');
